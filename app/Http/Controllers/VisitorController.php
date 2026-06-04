@@ -15,7 +15,7 @@ class VisitorController extends Controller
         $waitingCount = Antrian::waiting()->count();
 
         // Cek jika sistem tutup
-        if ($setting && !$setting->is_system_open) {
+        if ($setting && ! $setting->is_system_open) {
             return view('visitor.closed', compact('setting'));
         }
 
@@ -36,7 +36,7 @@ class VisitorController extends Controller
 
         $setting = QueueSetting::first();
 
-        if (!$setting || !$setting->is_system_open) {
+        if (! $setting || ! $setting->is_system_open) {
             return back()->withErrors(['visitor_name' => 'Maaf, pendaftaran antrian sedang ditutup.']);
         }
 

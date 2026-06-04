@@ -36,7 +36,7 @@ class QueueAudioService
             // Fallback: character by character if regex fails
             foreach (str_split(strtoupper($cleanNumber)) as $char) {
                 if (ctype_alpha($char)) {
-                    $playlist[] = $this->getAudioUrl("huruf/" . strtolower($char) . ".mp3");
+                    $playlist[] = $this->getAudioUrl('huruf/'.strtolower($char).'.mp3');
                 } elseif (is_numeric($char)) {
                     $playlist[] = $this->getAudioUrl("angka/{$char}.mp3");
                 }
@@ -56,6 +56,6 @@ class QueueAudioService
     protected function getAudioUrl(string $path): string
     {
         // Use relative path to avoid APP_URL mismatch issues in local dev
-        return asset('storage/audio/' . $path);
+        return asset('storage/audio/'.$path);
     }
 }

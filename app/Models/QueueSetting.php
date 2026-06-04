@@ -13,7 +13,7 @@ class QueueSetting extends Model
     protected $fillable = [
         'prefix', 'avg_service_minutes', 'reset_daily',
         'current_counter', 'last_reset_date',
-        'max_queue_limit', 'is_system_open',
+        'max_queue_limit', 'is_system_open', 'youtube_url',
     ];
 
     protected function casts(): array

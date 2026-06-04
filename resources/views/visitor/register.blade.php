@@ -4,12 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ambil Nomor Antrian</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --primary: #1a56db;
-    --primary-dark: #1343b3;
-    --bg: #f0f4ff;
+    --primary: #b10303;
+    --primary-dark: #8b0202;
+    --bg: #fef2f2;
     --card: #ffffff;
     --text: #1e293b;
     --muted: #64748b;
@@ -27,8 +28,8 @@
   }
   .card {
     background: var(--card);
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(26,86,219,.12);
+    border-radius: 6px;
+    box-shadow: 0 10px 40px rgba(177,3,3,.08);
     padding: 2.5rem 2rem;
     width: 100%;
     max-width: 420px;
@@ -40,18 +41,19 @@
   .logo {
     width: 64px; height: 64px;
     background: var(--primary);
-    border-radius: 16px;
+    border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 1rem;
     font-size: 28px;
+    color: white;
   }
   h1 { font-size: 1.5rem; color: var(--text); font-weight: 700; }
   .subtitle { color: var(--muted); font-size: .9rem; margin-top: .25rem; }
   .badge {
     display: inline-block;
-    background: #eff6ff;
+    background: #fef2f2;
     color: var(--primary);
-    border: 1px solid #bfdbfe;
+    border: 1px solid #fee2e2;
     border-radius: 999px;
     padding: .25rem .75rem;
     font-size: .8rem;
@@ -61,7 +63,7 @@
   .stats {
     background: #f8fafc;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 6px;
     padding: 1rem;
     margin-bottom: 1.5rem;
     display: flex;
@@ -82,7 +84,7 @@
     width: 100%;
     padding: .75rem 1rem;
     border: 2px solid var(--border);
-    border-radius: 10px;
+    border-radius: 6px;
     font-size: 1rem;
     color: var(--text);
     background: white;
@@ -93,7 +95,7 @@
   input:focus, textarea:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+    box-shadow: 0 0 0 3px rgba(177,3,3,.1);
   }
   textarea { resize: vertical; min-height: 80px; }
   .btn {
@@ -102,7 +104,7 @@
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 6px;
     font-size: 1.05rem;
     font-weight: 700;
     cursor: pointer;
@@ -123,10 +125,10 @@
 <body>
 <div class="card">
   <div class="header">
-    <div class="logo">🎟️</div>
+    <div class="logo"><i class="fa-solid fa-ticket"></i></div>
     <h1>Ambil Nomor Antrian</h1>
     <p class="subtitle">Isi data di bawah untuk mendapatkan nomor antrian</p>
-    <span class="badge">📍 Lokasi: {{ strtoupper($locationCode) }}</span>
+    <span class="badge"><i class="fa-solid fa-location-dot"></i> Lokasi: {{ strtoupper($locationCode) }}</span>
   </div>
 
   <div class="stats">
@@ -161,7 +163,7 @@
               placeholder="Contoh: Pembayaran tagihan, Pengambilan dokumen...">{{ old('purpose') }}</textarea>
 
     <button type="submit" class="btn" id="submit-btn">
-      <span>🎟️</span> Ambil Nomor Antrian
+      <i class="fa-solid fa-ticket"></i> Ambil Nomor Antrian
     </button>
   </form>
 </div>
@@ -170,7 +172,7 @@
 document.getElementById('queue-form').addEventListener('submit', function() {
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> Memproses...';
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
 });
 </script>
 </body>

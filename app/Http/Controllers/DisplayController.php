@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Antrian;
+use App\Models\QueueSetting;
 
 class DisplayController extends Controller
 {
@@ -17,7 +18,9 @@ class DisplayController extends Controller
         // 5 antrian berikutnya
         $nextQueues = Antrian::waiting()->take(5)->get();
 
-        return view('display.screen', compact('currentQueue', 'nextQueues'));
+        $setting = QueueSetting::first();
+
+        return view('display.screen', compact('currentQueue', 'nextQueues', 'setting'));
     }
 
     // API: status antrian terkini untuk display

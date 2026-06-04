@@ -23,7 +23,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::guard('operator')->user();
-            if (!$user->is_operator) {
+            if (! $user->is_operator) {
                 return redirect()->intended(route('admin.dashboard'));
             }
 

@@ -6,9 +6,9 @@ use App\Models\Antrian;
 use App\Models\QueueSetting;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller implements HasMiddleware
 {
@@ -19,9 +19,10 @@ class AdminController extends Controller implements HasMiddleware
     {
         return [
             new Middleware(function ($request, $next) {
-                if (!auth()->user() || auth()->user()->is_operator) {
+                if (! auth()->user() || auth()->user()->is_operator) {
                     abort(403, 'Akses khusus Administrator.');
                 }
+
                 return $next($request);
             }),
         ];
@@ -36,7 +37,14 @@ class AdminController extends Controller implements HasMiddleware
             'waiting' => Antrian::waiting()->count(),
         ];
 
-        return view('admin.dashboard', compact('stats'));
+        $recentQueues = Antrian::with('operator')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $operators = User::where('is_operator', true)->get();
+
+        return view('admin.dashboard', compact('stats', 'recentQueues', 'operators'));
     }
 
     public function settings()
@@ -45,7 +53,9 @@ class AdminController extends Controller implements HasMiddleware
             'prefix' => 'A',
             'avg_service_minutes' => 5,
             'reset_daily' => true,
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         ]);
+
         return view('admin.settings', compact('setting'));
     }
 
@@ -57,6 +67,7 @@ class AdminController extends Controller implements HasMiddleware
             'max_queue_limit' => 'required|integer|min:0',
             'reset_daily' => 'boolean',
             'is_system_open' => 'boolean',
+            'youtube_url' => 'nullable|string|max:255',
         ]);
 
         $setting = QueueSetting::first();
@@ -68,6 +79,7 @@ class AdminController extends Controller implements HasMiddleware
     public function operators()
     {
         $operators = User::where('is_operator', true)->get();
+
         return view('admin.operators', compact('operators'));
     }
 
@@ -96,7 +108,7 @@ class AdminController extends Controller implements HasMiddleware
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
             'loket_name' => 'required|string|max:255',
             'is_active' => 'boolean',
         ]);
@@ -112,10 +124,11 @@ class AdminController extends Controller implements HasMiddleware
 
     public function deleteOperator(User $user)
     {
-        if (!$user->is_operator) {
+        if (! $user->is_operator) {
             return back()->with('error', 'Tidak dapat menghapus Admin.');
         }
         $user->delete();
+
         return back()->with('success', 'Operator dihapus.');
     }
 
@@ -123,6 +136,7 @@ class AdminController extends Controller implements HasMiddleware
     {
         $setting = QueueSetting::first();
         $setting->update(['current_counter' => 0]);
+
         return back()->with('success', 'Counter antrian telah direset ke 0.');
     }
 }

@@ -20,7 +20,7 @@ class QueueCalled implements ShouldBroadcast
     {
         return [
             new Channel('display-screen'),
-            new Channel('ticket.' . $this->antrian->uuid),
+            new Channel('ticket.'.$this->antrian->uuid),
             new Channel('operator-dashboard'),
         ];
     }
@@ -28,13 +28,13 @@ class QueueCalled implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'id'             => $this->antrian->id,
-            'uuid'           => $this->antrian->uuid,
-            'queue_number'   => $this->antrian->queue_number,
-            'visitor_name'   => $this->antrian->visitor_name,
-            'loket_name'     => $this->loketName,
-            'status'         => $this->antrian->status,
-            'called_at'      => $this->antrian->called_at?->format('H:i:s'),
+            'id' => $this->antrian->id,
+            'uuid' => $this->antrian->uuid,
+            'queue_number' => $this->antrian->queue_number,
+            'visitor_name' => $this->antrian->visitor_name,
+            'loket_name' => $this->loketName,
+            'status' => $this->antrian->status,
+            'called_at' => $this->antrian->called_at?->format('H:i:s'),
             'audio_playlist' => app(QueueAudioService::class)->buildPlaylist(
                 $this->antrian->queue_number,
                 $this->loketName

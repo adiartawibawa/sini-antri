@@ -281,7 +281,7 @@
       </div>
 
       <ul class="queue-list" id="queue-list">
-        @forelse($waitingQueues as $q)
+        @foreach($waitingQueues as $q)
           <li class="queue-item" id="queue-item-{{ $q->id }}" data-id="{{ $q->id }}">
             <span class="q-number">{{ $q->queue_number }}</span>
             <div class="q-info">
@@ -290,12 +290,13 @@
             </div>
             <span class="q-time">{{ $q->created_at->format('H:i') }}</span>
           </li>
-        @empty
+        @endforeach
+        @if($waitingQueues->isEmpty())
           <li class="empty-state" id="empty-state">
             <span class="emoji">🎉</span>
             Belum ada antrian yang menunggu
           </li>
-        @endforelse
+        @endif
       </ul>
     </div>
   </div>
