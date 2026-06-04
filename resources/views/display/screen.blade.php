@@ -267,6 +267,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const startOverlay = document.getElementById('start-overlay');
+            const audioQueue = [];
+            let isProcessingQueue = false;
+
             startOverlay.addEventListener('click', () => {
                 startOverlay.style.display = 'none';
                 // WARM UP: Play a silent sound to unlock audio on all browsers
@@ -288,16 +291,12 @@
             async function playPlaylist(files) {
                 console.log('Playing playlist:', files);
                 for (const file of files) {
-                    console.log('Current file:', file);
                     await new Promise(resolve => {
                         const audio = new Audio(file);
-                        audio.onended = () => {
-                            console.log('Finished:', file);
-                            resolve();
-                        };
+                        audio.onended = () => resolve();
                         audio.onerror = (e) => {
                             console.error('Error playing:', file, e);
-                            resolve(); // Skip error and continue
+                            resolve(); 
                         };
                         audio.play().catch(err => {
                             console.error('Play failed:', file, err);
@@ -307,15 +306,27 @@
                 }
             }
 
-            window.Echo.channel('display-screen').listen('QueueCalled', async (data) => {
+            async function processAudioQueue() {
+                if (isProcessingQueue || audioQueue.length === 0) return;
+                isProcessingQueue = true;
+                const playlist = audioQueue.shift();
+                await playPlaylist(playlist);
+                isProcessingQueue = false;
+                processAudioQueue();
+            }
+
+            window.Echo.channel('display-screen').listen('QueueCalled', (data) => {
                 console.log('Event received:', data);
                 updateDisplay(data.queue_number, data.visitor_name, data.loket_name);
                 flashScreen();
+                
                 if (data.audio_playlist && data.audio_playlist.length > 0) {
-                    await playPlaylist(data.audio_playlist);
+                    audioQueue.push(data.audio_playlist);
+                    processAudioQueue();
                 } else {
                     console.warn('No audio playlist received in event');
                 }
+                
                 updateNextList();
             });
 
