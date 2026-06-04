@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DisplayController;
 use App\Http\Controllers\OperatorController;
@@ -42,12 +43,27 @@ Route::prefix('operator')->name('operator.')->middleware('auth:operator')->group
 
     // Aksi antrian (AJAX/JSON)
     Route::post('/queue/call', [OperatorController::class, 'call'])->name('queue.call');
-    Route::post('/queue/{queue}/recall', [OperatorController::class, 'recall'])->name('queue.recall');
-    Route::post('/queue/{queue}/skip', [OperatorController::class, 'skip'])->name('queue.skip');
-    Route::post('/queue/{queue}/complete', [OperatorController::class, 'complete'])->name('queue.complete');
+    Route::post('/queue/{antrian}/recall', [OperatorController::class, 'recall'])->name('queue.recall');
+    Route::post('/queue/{antrian}/skip', [OperatorController::class, 'skip'])->name('queue.skip');
+    Route::post('/queue/{antrian}/complete', [OperatorController::class, 'complete'])->name('queue.complete');
 
     // API polling (fallback jika WebSocket tidak tersedia)
     Route::get('/queue/waiting', [OperatorController::class, 'waitingList'])->name('queue.waiting');
+});
+
+// -------------------------------------------------------
+// SISI ADMINISTRATOR (is_operator = false)
+// -------------------------------------------------------
+Route::prefix('admin')->name('admin.')->middleware('auth:operator')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/settings/reset', [AdminController::class, 'resetCounter'])->name('settings.reset');
+
+    Route::get('/operators', [AdminController::class, 'operators'])->name('operators');
+    Route::post('/operators', [AdminController::class, 'storeOperator'])->name('operators.store');
+    Route::put('/operators/{user}', [AdminController::class, 'updateOperator'])->name('operators.update');
+    Route::delete('/operators/{user}', [AdminController::class, 'deleteOperator'])->name('operators.delete');
 });
 
 // -------------------------------------------------------

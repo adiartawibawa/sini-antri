@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Queue;
+use App\Models\Antrian;
 
 class DisplayController extends Controller
 {
@@ -10,12 +10,12 @@ class DisplayController extends Controller
     public function index()
     {
         // Ambil nomor yang terakhir dipanggil
-        $currentQueue = Queue::whereIn('status', ['called', 'serving'])
+        $currentQueue = Antrian::whereIn('status', ['called', 'serving'])
             ->latest('called_at')
             ->first();
 
         // 5 antrian berikutnya
-        $nextQueues = Queue::waiting()->take(5)->get();
+        $nextQueues = Antrian::waiting()->take(5)->get();
 
         return view('display.screen', compact('currentQueue', 'nextQueues'));
     }
@@ -23,15 +23,22 @@ class DisplayController extends Controller
     // API: status antrian terkini untuk display
     public function status()
     {
-        $currentQueue = Queue::whereIn('status', ['called', 'serving'])
+        $currentQueue = Antrian::whereIn('status', ['called', 'serving'])
             ->latest('called_at')
             ->first();
 
-        $nextQueues = Queue::waiting()->take(5)->get();
+        $nextQueues = Antrian::waiting()->take(5)->get();
 
         return response()->json([
-            'current' => $currentQueue?->only(['queue_number', 'visitor_name', 'operator.loket_name']),
-            'next' => $nextQueues->map(fn ($q) => $q->only(['queue_number', 'visitor_name'])),
+            'current' => $currentQueue ? [
+                'queue_number' => $currentQueue->queue_number,
+                'visitor_name' => $currentQueue->visitor_name,
+                'loket_name' => $currentQueue->operator?->loket_name,
+            ] : null,
+            'next' => $nextQueues->map(fn ($q) => [
+                'queue_number' => $q->queue_number,
+                'visitor_name' => $q->visitor_name,
+            ]),
         ]);
     }
 

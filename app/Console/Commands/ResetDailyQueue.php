@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Queue;
+use App\Models\Antrian;
 use App\Models\QueueSetting;
 use Illuminate\Console\Command;
 
@@ -10,7 +10,7 @@ class ResetDailyQueue extends Command
 {
     protected $signature = 'queue:reset-daily';
 
-    protected $description = 'Reset nomor antrian setiap hari (jalankan via scheduler jam 00:00)';
+    protected $description = 'Reset nomor antrian setiap hari (jalankan via scheduler jam 00:01)';
 
     public function handle(): void
     {
@@ -23,12 +23,15 @@ class ResetDailyQueue extends Command
         }
 
         // Tandai semua antrian hari sebelumnya yang masih waiting menjadi skipped
-        $skipped = Queue::where('status', 'waiting')
+        $skipped = Antrian::where('status', 'waiting')
             ->whereDate('created_at', '<', today())
             ->update(['status' => 'skipped']);
 
         // Reset counter
-        $setting->update(['current_counter' => 0, 'last_reset_date' => today()]);
+        $setting->update([
+            'current_counter' => 0,
+            'last_reset_date' => today(),
+        ]);
 
         $this->info("✅ Reset selesai. {$skipped} antrian leftover diskip.");
     }

@@ -16,15 +16,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
         // Pengaturan antrian default
-        QueueSetting::create([
+        QueueSetting::firstOrCreate([], [
             'prefix' => env('QUEUE_PREFIX', 'A'),
             'avg_service_minutes' => 5,
             'reset_daily' => true,
@@ -32,30 +25,47 @@ class DatabaseSeeder extends Seeder
             'last_reset_date' => today(),
         ]);
 
+        // Admin default
+        User::updateOrCreate(['email' => 'admin@antri.test'], [
+            'name' => 'Administrator',
+            'email' => 'admin@antri.test',
+            'password' => 'admin123',
+            'loket_name' => 'Admin Panel',
+            'is_active' => true,
+            'is_operator' => false, // false = admin
+        ]);
+
         // Operator / Loket default
-        User::create([
-            'name' => 'Operator 1',
-            'email' => 'loket1@antrian.test',
-            'password' => 'password',
-            'loket_name' => 'Loket 1',
-            'is_active' => true,
-        ]);
+        $operators = [
+            [
+                'name' => 'Operator 1',
+                'email' => 'loket1@antrian.test',
+                'password' => 'password',
+                'loket_name' => 'Loket 1',
+                'is_active' => true,
+                'is_operator' => true,
+            ],
+            [
+                'name' => 'Operator 2',
+                'email' => 'loket2@antrian.test',
+                'password' => 'password',
+                'loket_name' => 'Loket 2',
+                'is_active' => true,
+                'is_operator' => true,
+            ],
+            [
+                'name' => 'Operator 3',
+                'email' => 'loket3@antrian.test',
+                'password' => 'password',
+                'loket_name' => 'Loket 3',
+                'is_active' => true,
+                'is_operator' => true,
+            ],
+        ];
 
-        User::create([
-            'name' => 'Operator 2',
-            'email' => 'loket2@antrian.test',
-            'password' => 'password',
-            'loket_name' => 'Loket 2',
-            'is_active' => true,
-        ]);
-
-        User::create([
-            'name' => 'Operator 3',
-            'email' => 'loket3@antrian.test',
-            'password' => 'password',
-            'loket_name' => 'Loket 3',
-            'is_active' => true,
-        ]);
+        foreach ($operators as $operator) {
+            User::updateOrCreate(['email' => $operator['email']], $operator);
+        }
 
         $this->command->info('✅ Seed selesai!');
         $this->command->info('   Login: loket1@antrian.test / password');

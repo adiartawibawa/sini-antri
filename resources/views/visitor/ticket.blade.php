@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiket Antrian {{ $queue->queue_number }}</title>
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+@vite(['resources/css/app.css', 'resources/js/echo.js'])
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -241,135 +241,120 @@
 </div>
 
 <script>
-const UUID   = "{{ $queue->uuid }}";
-const STATUS = "{{ $queue->status }}";
-const PUSHER_KEY     = "{{ config('broadcasting.connections.pusher.key') }}";
-const PUSHER_CLUSTER = "{{ config('broadcasting.connections.pusher.options.cluster') }}";
-const AVG_MINUTES    = {{ $queue->status === 'waiting' ? ($positionAhead > 0 ? ($positionAhead * (config('queue.avg_minutes', 5))) : 0) : 0 }};
-const AVG_PER_PERSON = {{ \App\Models\QueueSetting::first()?->avg_service_minutes ?? 5 }};
+document.addEventListener('DOMContentLoaded', () => {
+    const UUID   = "{{ $queue->uuid }}";
+    let STATUS = "{{ $queue->status }}";
+    const AVG_PER_PERSON = {{ \App\Models\QueueSetting::first()?->avg_service_minutes ?? 5 }};
 
-// ---- Pusher / WebSocket Setup ----
-const pusher = new Pusher(PUSHER_KEY, {
-  cluster: PUSHER_CLUSTER,
-  encrypted: true,
+    // ---- Laravel Echo Listeners ----
+    window.Echo.channel('ticket.' + UUID)
+        .listen('QueueCalled', (data) => {
+            updateStatus('called', data.loket_name);
+            playNotificationSound();
+            vibrate();
+            STATUS = 'called';
+        })
+        .listen('QueueStatusChanged', (data) => {
+            updateStatus(data.status);
+            refreshPosition();
+            STATUS = data.status;
+        });
+
+    window.Echo.channel('operator-dashboard')
+        .listen('QueueCalled', (data) => {
+            if (STATUS === 'waiting') {
+                refreshPosition();
+            }
+        });
+
+    // ---- Update UI ----
+    function updateStatus(status, loketName) {
+        const badge     = document.getElementById('status-badge');
+        const iconEl    = document.getElementById('status-icon');
+        const textEl    = document.getElementById('status-text');
+        const alertEl   = document.getElementById('alert-called');
+        const ticketEl  = document.getElementById('ticket-number');
+
+        badge.className = 'status-badge status-' + status;
+
+        const labels = {
+            waiting:   { icon: '⏳', text: 'Menunggu Dipanggil' },
+            called:    { icon: '📢', text: 'Silakan Menuju Loket!' },
+            serving:   { icon: '✅', text: 'Sedang Dilayani' },
+            completed: { icon: '🏁', text: 'Selesai' },
+            skipped:   { icon: '⏭️', text: 'Dilewati' },
+        };
+
+        if (labels[status]) {
+            iconEl.textContent = labels[status].icon;
+            textEl.textContent = labels[status].text;
+        }
+
+        if (status === 'called' && loketName) {
+            alertEl.classList.add('show');
+            document.getElementById('alert-loket').textContent = loketName;
+            document.getElementById('loket-name').textContent  = loketName;
+            document.getElementById('loket-row').style.display = 'flex';
+        } else {
+            alertEl.classList.remove('show');
+        }
+
+        ticketEl.classList.add('pulse');
+        setTimeout(() => ticketEl.classList.remove('pulse'), 700);
+
+        if (status === 'called' || status === 'serving' || status === 'completed' || status === 'skipped') {
+            document.getElementById('position-ahead').textContent = '0';
+            document.getElementById('est-minutes').textContent = '—';
+        }
+    }
+
+    function refreshPosition() {
+        if (STATUS !== 'waiting') return;
+        
+        fetch('/ticket/' + UUID + '/position')
+            .then(r => r.json())
+            .then(data => {
+                const posEl  = document.getElementById('position-ahead');
+                const estEl  = document.getElementById('est-minutes');
+                posEl.textContent = data.position_ahead;
+                posEl.classList.add('updated');
+                setTimeout(() => posEl.classList.remove('updated'), 600);
+                if (data.position_ahead > 0) {
+                    estEl.innerHTML = '~' + (data.position_ahead * AVG_PER_PERSON) + ' <span style="font-size:1rem">mnt</span>';
+                } else {
+                    estEl.textContent = '—';
+                }
+            }).catch(() => {});
+    }
+
+    function playNotificationSound() {
+        try {
+            const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+            const osc  = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.setValueAtTime(660, ctx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.4, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.6);
+        } catch(e) {}
+    }
+
+    function vibrate() {
+        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    }
+
+    // Polling fallback
+    setInterval(() => {
+        if (window.Echo.connector.pusher.connection.state !== 'connected') {
+            refreshPosition();
+        }
+    }, 30000);
 });
-
-// Subscribe ke channel tiket spesifik milik pengunjung ini
-const channel = pusher.subscribe('ticket.' + UUID);
-
-channel.bind('App\\Events\\QueueCalled', function(data) {
-  if (data.uuid !== UUID) return;
-  updateStatus('called', data.loket_name);
-  playNotificationSound();
-  vibrate();
-});
-
-channel.bind('App\\Events\\QueueStatusChanged', function(data) {
-  if (data.uuid !== UUID) return;
-  updateStatus(data.status);
-  updatePosition(data.waiting_count);
-});
-
-// Subscribe ke channel operator untuk update posisi antrian
-const dashChannel = pusher.subscribe('operator-dashboard');
-dashChannel.bind('App\\Events\\QueueCalled', function(data) {
-  // Update posisi antrian semua pengunjung yang waiting
-  if (STATUS === 'waiting') {
-    refreshPosition();
-  }
-});
-
-// ---- Update UI ----
-function updateStatus(status, loketName) {
-  const badge     = document.getElementById('status-badge');
-  const iconEl    = document.getElementById('status-icon');
-  const textEl    = document.getElementById('status-text');
-  const alertEl   = document.getElementById('alert-called');
-  const ticketEl  = document.getElementById('ticket-number');
-
-  // Reset classes
-  badge.className = 'status-badge status-' + status;
-
-  const labels = {
-    waiting:   { icon: '⏳', text: 'Menunggu Dipanggil' },
-    called:    { icon: '📢', text: 'Silakan Menuju Loket!' },
-    serving:   { icon: '✅', text: 'Sedang Dilayani' },
-    completed: { icon: '🏁', text: 'Selesai' },
-    skipped:   { icon: '⏭️', text: 'Dilewati' },
-  };
-
-  if (labels[status]) {
-    iconEl.textContent = labels[status].icon;
-    textEl.textContent = labels[status].text;
-  }
-
-  if (status === 'called' && loketName) {
-    alertEl.classList.add('show');
-    document.getElementById('alert-loket').textContent = loketName;
-    document.getElementById('loket-name').textContent  = loketName;
-    document.getElementById('loket-row').style.display = 'flex';
-  }
-
-  // Animasi nomor
-  ticketEl.classList.add('pulse');
-  setTimeout(() => ticketEl.classList.remove('pulse'), 700);
-
-  // Update posisi menjadi 0 jika dipanggil
-  if (status === 'called' || status === 'serving') {
-    updatePosition(0);
-  }
-}
-
-function updatePosition(waitingCount) {
-  // Refresh posisi dari server
-  refreshPosition();
-}
-
-function refreshPosition() {
-  fetch('/ticket/' + UUID + '/position')
-    .then(r => r.json())
-    .then(data => {
-      const posEl  = document.getElementById('position-ahead');
-      const estEl  = document.getElementById('est-minutes');
-      posEl.textContent = data.position_ahead;
-      posEl.classList.add('updated');
-      setTimeout(() => posEl.classList.remove('updated'), 600);
-      if (data.position_ahead > 0) {
-        estEl.innerHTML = '~' + (data.position_ahead * AVG_PER_PERSON) + ' <span style="font-size:1rem">mnt</span>';
-      } else {
-        estEl.textContent = '—';
-      }
-    }).catch(() => {});
-}
-
-function playNotificationSound() {
-  // Gunakan Web Speech API / AudioContext untuk suara notifikasi sederhana
-  try {
-    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.setValueAtTime(660, ctx.currentTime + 0.2);
-    gain.gain.setValueAtTime(0.4, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.6);
-  } catch(e) {}
-}
-
-function vibrate() {
-  if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-}
-
-// Fallback polling setiap 30 detik jika WebSocket putus
-setInterval(() => {
-  if (pusher.connection.state !== 'connected') {
-    refreshPosition();
-  }
-}, 30000);
 </script>
 </body>
 </html>

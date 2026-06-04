@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\Queue;
+use App\Models\Antrian;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -16,7 +16,7 @@ class QueueCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Queue $queue) {}
+    public function __construct(public Antrian $antrian) {}
 
     public function broadcastOn(): array
     {
@@ -28,15 +28,15 @@ class QueueCreated implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'id'            => $this->queue->id,
-            'uuid'          => $this->queue->uuid,
-            'queue_number'  => $this->queue->queue_number,
-            'queue_order'   => $this->queue->queue_order,
-            'visitor_name'  => $this->queue->visitor_name,
-            'purpose'       => $this->queue->purpose,
-            'status'        => $this->queue->status,
-            'created_at'    => $this->queue->created_at->format('H:i'),
-            'waiting_count' => Queue::waiting()->count(),
+            'id' => $this->antrian->id,
+            'uuid' => $this->antrian->uuid,
+            'queue_number' => $this->antrian->queue_number,
+            'queue_order' => $this->antrian->queue_order,
+            'visitor_name' => $this->antrian->visitor_name,
+            'purpose' => $this->antrian->purpose,
+            'status' => $this->antrian->status,
+            'created_at' => $this->antrian->created_at->format('H:i'),
+            'waiting_count' => Antrian::waiting()->count(),
         ];
     }
 }

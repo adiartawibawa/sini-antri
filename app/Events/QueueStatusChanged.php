@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\Queue;
+use App\Models\Antrian;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -17,14 +17,14 @@ class QueueStatusChanged implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public Queue  $queue,
+        public Antrian $antrian,
         public string $previousStatus
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new Channel('ticket.' . $this->queue->uuid), // HP pengunjung
+            new Channel('ticket.'.$this->antrian->uuid), // HP pengunjung
             new Channel('operator-dashboard'),            // Dashboard operator
         ];
     }
@@ -32,12 +32,12 @@ class QueueStatusChanged implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'id'              => $this->queue->id,
-            'uuid'            => $this->queue->uuid,
-            'queue_number'    => $this->queue->queue_number,
-            'status'          => $this->queue->status,
+            'id' => $this->antrian->id,
+            'uuid' => $this->antrian->uuid,
+            'queue_number' => $this->antrian->queue_number,
+            'status' => $this->antrian->status,
             'previous_status' => $this->previousStatus,
-            'waiting_count'   => Queue::waiting()->count(),
+            'waiting_count' => Antrian::waiting()->count(),
         ];
     }
 }

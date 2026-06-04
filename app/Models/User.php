@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,55 +11,33 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, HasUuids, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'is_active',
-        'is_operator',
+        'name', 'email', 'password', 'loket_name', 'is_active', 'is_operator',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', 'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
             'is_active' => 'boolean',
             'is_operator' => 'boolean',
+            'password' => 'hashed',
         ];
     }
 
     public function queues(): HasMany
     {
-        return $this->hasMany(Queue::class);
+        return $this->hasMany(Antrian::class, 'operator_id');
     }
 
-    // Antrian yang sedang dilayani operator ini
     public function activeQueue(): HasOne
     {
-        return $this->hasOne(Queue::class)->whereIn('status', ['called', 'serving']);
+        return $this->hasOne(Antrian::class, 'operator_id')
+            ->whereIn('status', ['called', 'serving']);
     }
 }

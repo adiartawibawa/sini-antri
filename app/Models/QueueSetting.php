@@ -13,28 +13,34 @@ class QueueSetting extends Model
     protected $fillable = [
         'prefix', 'avg_service_minutes', 'reset_daily',
         'current_counter', 'last_reset_date',
+        'max_queue_limit', 'is_system_open',
     ];
 
-    protected function casts()
+    protected function casts(): array
     {
         return [
             'reset_daily' => 'boolean',
+            'is_system_open' => 'boolean',
             'last_reset_date' => 'date',
         ];
     }
 
-    // Generate nomor antrian berikutnya
+    // Method kunci
     public function generateNextNumber(): string
     {
-        // Reset jika hari berbeda
-        if ($this->reset_daily && $this->last_reset_date?->isToday() === false) {
+        // 1. Jika reset_daily=true dan last_reset_date bukan hari ini → reset counter ke 0
+        if ($this->reset_daily && (! $this->last_reset_date || ! $this->last_reset_date->isToday())) {
             $this->current_counter = 0;
             $this->last_reset_date = Carbon::today();
         }
 
+        // 2. Increment current_counter
         $this->current_counter++;
+
+        // 3. Save
         $this->save();
 
+        // 4. Return prefix + str_pad(current_counter, 3, '0', STR_PAD_LEFT)
         return $this->prefix.str_pad($this->current_counter, 3, '0', STR_PAD_LEFT);
     }
 }

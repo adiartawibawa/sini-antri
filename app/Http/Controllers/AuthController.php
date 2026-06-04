@@ -19,8 +19,13 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::guard('operator')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+
+            $user = Auth::guard('operator')->user();
+            if (!$user->is_operator) {
+                return redirect()->intended(route('admin.dashboard'));
+            }
 
             return redirect()->intended(route('operator.dashboard'));
         }
@@ -30,7 +35,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
+        Auth::guard('operator')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

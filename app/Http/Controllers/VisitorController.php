@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\QueueCreated;
-use App\Models\Queue;
+use App\Models\Antrian;
 use App\Models\QueueSetting;
 use Illuminate\Http\Request;
 
@@ -12,7 +12,17 @@ class VisitorController extends Controller
     public function register(string $locationCode = 'umum')
     {
         $setting = QueueSetting::first();
-        $waitingCount = Queue::waiting()->count();
+        $waitingCount = Antrian::waiting()->count();
+
+        // Cek jika sistem tutup
+        if ($setting && !$setting->is_system_open) {
+            return view('visitor.closed', compact('setting'));
+        }
+
+        // Cek jika kuota penuh (0 = unlimited)
+        if ($setting && $setting->max_queue_limit > 0 && $setting->current_counter >= $setting->max_queue_limit) {
+            return view('visitor.full', compact('setting'));
+        }
 
         return view('visitor.register', compact('locationCode', 'setting', 'waitingCount'));
     }
@@ -24,17 +34,20 @@ class VisitorController extends Controller
             'purpose' => 'nullable|string|max:255',
         ]);
 
-        $setting = QueueSetting::firstOrCreate([], [
-            'prefix' => env('QUEUE_PREFIX', 'A'),
-            'avg_service_minutes' => env('QUEUE_AVG_SERVICE_MINUTES', 5),
-            'reset_daily' => true,
-            'current_counter' => 0,
-        ]);
+        $setting = QueueSetting::first();
+
+        if (!$setting || !$setting->is_system_open) {
+            return back()->withErrors(['visitor_name' => 'Maaf, pendaftaran antrian sedang ditutup.']);
+        }
+
+        if ($setting->max_queue_limit > 0 && $setting->current_counter >= $setting->max_queue_limit) {
+            return back()->withErrors(['visitor_name' => 'Maaf, kuota antrian hari ini telah penuh.']);
+        }
 
         $queueNumber = $setting->generateNextNumber();
         $queueOrder = $setting->current_counter;
 
-        $queue = Queue::create([
+        $antrian = Antrian::create([
             'queue_number' => $queueNumber,
             'queue_order' => $queueOrder,
             'visitor_name' => $validated['visitor_name'],
@@ -42,32 +55,34 @@ class VisitorController extends Controller
             'status' => 'waiting',
         ]);
 
-        broadcast(new QueueCreated($queue))->toOthers();
+        broadcast(new QueueCreated($antrian))->toOthers();
 
-        return redirect()->route('visitor.ticket', $queue->uuid);
+        return redirect()->route('visitor.ticket', $antrian->uuid);
     }
 
     public function ticket(string $uuid)
     {
-        $queue = Queue::where('uuid', $uuid)->firstOrFail();
-        $positionAhead = Queue::waiting()->where('queue_order', '<', $queue->queue_order)->count();
+        $antrian = Antrian::where('uuid', $uuid)->firstOrFail();
+        $positionAhead = $antrian->position_ahead;
         $setting = QueueSetting::first();
-        $estimatedMinutes = $positionAhead * ($setting?->avg_service_minutes ?? 5);
+        $estimatedMinutes = $antrian->estimated_wait_minutes;
 
-        return view('visitor.ticket', compact('queue', 'positionAhead', 'estimatedMinutes'));
+        return view('visitor.ticket', [
+            'queue' => $antrian,
+            'positionAhead' => $positionAhead,
+            'estimatedMinutes' => $estimatedMinutes,
+        ]);
     }
 
     // API: Posisi terkini (dipanggil oleh JS di HP pengunjung)
     public function ticketPosition(string $uuid)
     {
-        $queue = Queue::where('uuid', $uuid)->firstOrFail();
-        $positionAhead = Queue::waiting()->where('queue_order', '<', $queue->queue_order)->count();
-        $setting = QueueSetting::first();
+        $antrian = Antrian::where('uuid', $uuid)->firstOrFail();
 
         return response()->json([
-            'position_ahead' => $positionAhead,
-            'estimated_minutes' => $positionAhead * ($setting?->avg_service_minutes ?? 5),
-            'status' => $queue->status,
+            'position_ahead' => $antrian->position_ahead,
+            'estimated_minutes' => $antrian->estimated_wait_minutes,
+            'status' => $antrian->status,
         ]);
     }
 }

@@ -15,9 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('loket_name')->nullable();
+            $table->string('loket_name')->default('Loket 1');
             $table->boolean('is_active')->default(true);
             $table->boolean('is_operator')->default(false);
             $table->rememberToken();

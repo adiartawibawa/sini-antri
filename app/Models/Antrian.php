@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
-class Queue extends Model
+class Antrian extends Model
 {
     use HasUuids;
+
+    protected $table = 'queues';
 
     protected $fillable = [
         'uuid', 'queue_number', 'queue_order',
@@ -16,7 +19,7 @@ class Queue extends Model
         'operator_id', 'called_at', 'served_at', 'completed_at',
     ];
 
-    protected function casts()
+    protected function casts(): array
     {
         return [
             'called_at' => 'datetime',
@@ -25,12 +28,18 @@ class Queue extends Model
         ];
     }
 
-    public function operator(): BelongsTo
+    protected static function boot(): void
     {
-        return $this->belongsTo(User::class);
+        parent::boot();
+        static::creating(fn ($m) => $m->uuid ??= (string) Str::uuid());
     }
 
-    // Hitung berapa antrian di depan pengunjung ini
+    public function operator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    // Hitung antrian waiting dengan queue_order < queue_order milik record ini
     public function getPositionAheadAttribute(): int
     {
         return static::where('status', 'waiting')
@@ -38,7 +47,7 @@ class Queue extends Model
             ->count();
     }
 
-    // Estimasi waktu tunggu dalam menit
+    // position_ahead × avg_service_minutes dari QueueSetting
     public function getEstimatedWaitMinutesAttribute(): int
     {
         $avgMinutes = QueueSetting::first()?->avg_service_minutes ?? 5;
@@ -46,14 +55,15 @@ class Queue extends Model
         return $this->position_ahead * $avgMinutes;
     }
 
-    // Scope: antrian yang sedang aktif
+    // WHERE status = 'waiting' ORDER BY queue_order ASC
+    public function scopeWaiting($query)
+    {
+        return $query->where('status', 'waiting')->orderBy('queue_order', 'asc');
+    }
+
+    // WHERE status IN ('waiting', 'called')
     public function scopeActive($query)
     {
         return $query->whereIn('status', ['waiting', 'called']);
-    }
-
-    public function scopeWaiting($query)
-    {
-        return $query->where('status', 'waiting')->orderBy('queue_order');
     }
 }

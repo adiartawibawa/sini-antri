@@ -12,11 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('queues', function (Blueprint $table) {
-            $table->uuid('uuid')->primary()->comment('Token unik untuk URL tiket pengunjung');
-            $table->string('queue_number', 10)->comment('Nomor antrian, misal: A001');
-            $table->integer('queue_order')->comment('Urutan numerik untuk sorting');
-            $table->string('visitor_name');
-            $table->string('purpose')->nullable()->comment('Keperluan kunjungan');
+            $table->uuid('id')->primary();
+            $table->char('uuid', 36)->unique(); // token URL tiket pengunjung
+            $table->string('queue_number', 10);
+            $table->integer('queue_order');
+            $table->string('visitor_name', 100);
+            $table->string('purpose', 255)->nullable();
             $table->enum('status', ['waiting', 'called', 'serving', 'completed', 'skipped'])
                 ->default('waiting');
             $table->foreignUuid('operator_id')->nullable()->constrained('users')->nullOnDelete();
@@ -25,7 +26,8 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
 
-            $table->index(['status', 'queue_order']);
+            $table->index(['status', 'queue_order'], 'idx_status_order');
+            $table->index('uuid', 'idx_uuid');
         });
     }
 

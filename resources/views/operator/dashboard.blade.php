@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Operator – {{ Auth::guard('operator')->user()->loket_name }}</title>
+<title>Dashboard Operator – {{ Auth::user()->loket_name }}</title>
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+@vite(['resources/css/app.css', 'resources/js/echo.js'])
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -191,8 +191,8 @@
       <span class="conn-dot connected" id="conn-dot"></span>
       <span id="conn-label" style="font-size:.78rem;color:#94a3b8">Terhubung</span>
     </span>
-    <span class="loket-badge">{{ Auth::guard('operator')->user()->loket_name }}</span>
-    <span style="color:#94a3b8">{{ Auth::guard('operator')->user()->name }}</span>
+    <span class="loket-badge">{{ Auth::user()->loket_name }}</span>
+    <span style="color:#94a3b8">{{ Auth::user()->name }}</span>
     <form method="POST" action="{{ route('logout') }}" style="display:inline">
       @csrf
       <button class="logout-btn" type="submit">Keluar</button>
@@ -214,13 +214,13 @@
       </div>
       <div class="stat-card green">
         <div class="stat-value" id="stat-served">
-          {{ \App\Models\Queue::where('status','completed')->whereDate('created_at',today())->count() }}
+          {{ \App\Models\Antrian::where('status','completed')->whereDate('created_at',today())->count() }}
         </div>
         <div class="stat-label">✅ Selesai Hari Ini</div>
       </div>
       <div class="stat-card gray">
         <div class="stat-value" id="stat-skipped">
-          {{ \App\Models\Queue::where('status','skipped')->whereDate('created_at',today())->count() }}
+          {{ \App\Models\Antrian::where('status','skipped')->whereDate('created_at',today())->count() }}
         </div>
         <div class="stat-label">⏭️ Dilewati</div>
       </div>
@@ -230,7 +230,7 @@
     <div class="card">
       <div class="card-header">
         <span class="card-title">🎯 Sedang Dilayani</span>
-        <span id="active-loket" style="font-size:.8rem;color:var(--muted)">{{ Auth::guard('operator')->user()->loket_name }}</span>
+        <span id="active-loket" style="font-size:.8rem;color:var(--muted)">{{ Auth::user()->loket_name }}</span>
       </div>
 
       <div class="active-box" id="active-box">
@@ -306,193 +306,197 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const PUSHER_KEY     = "{{ config('broadcasting.connections.pusher.key') }}";
-const PUSHER_CLUSTER = "{{ config('broadcasting.connections.pusher.options.cluster') }}";
-const CSRF_TOKEN     = document.querySelector('meta[name="csrf-token"]').content;
+document.addEventListener('DOMContentLoaded', () => {
+    const CSRF_TOKEN     = document.querySelector('meta[name="csrf-token"]').content;
+    let activeQueueId   = @json($activeQueue?->id);
 
-let activeQueueId   = @json($activeQueue?->id);
-let activeQueueData = @json($activeQueue);
+    // ---- Laravel Echo Listeners ----
+    window.Echo.connector.pusher.connection.bind('state_change', (states) => {
+        updateConn(states.current === 'connected');
+    });
 
-// ---- Pusher Setup ----
-const pusher = new Pusher(PUSHER_KEY, { cluster: PUSHER_CLUSTER, encrypted: true });
-const channel = pusher.subscribe('operator-dashboard');
+    window.Echo.channel('operator-dashboard')
+        .listen('QueueCreated', (data) => {
+            addQueueItem(data);
+            updateStats(data.waiting_count);
+            showToast('🎟️ Antrian baru: ' + data.queue_number + ' – ' + data.visitor_name, 'success');
+        })
+        .listen('QueueStatusChanged', (data) => {
+            removeQueueItem(data.id);
+            updateStats(data.waiting_count);
+        })
+        .listen('QueueCalled', (data) => {
+            removeQueueItem(data.id);
+        });
 
-pusher.connection.bind('connected',    () => updateConn(true));
-pusher.connection.bind('disconnected', () => updateConn(false));
-pusher.connection.bind('error',        () => updateConn(false));
-
-function updateConn(ok) {
-  const dot   = document.getElementById('conn-dot');
-  const label = document.getElementById('conn-label');
-  dot.className = 'conn-dot ' + (ok ? 'connected' : 'disconnected');
-  label.textContent = ok ? 'Terhubung' : 'Terputus';
-}
-
-// Antrian baru masuk
-channel.bind('App\\Events\\QueueCreated', function(data) {
-  addQueueItem(data);
-  updateStats(data.waiting_count);
-  showToast('🎟️ Antrian baru: ' + data.queue_number + ' – ' + data.visitor_name, 'success');
-});
-
-// Antrian dipanggil / status berubah
-channel.bind('App\\Events\\QueueStatusChanged', function(data) {
-  removeQueueItem(data.id);
-  updateStats(data.waiting_count);
-});
-
-// ---- DOM Helpers ----
-function addQueueItem(data) {
-  const list  = document.getElementById('queue-list');
-  const empty = document.getElementById('empty-state');
-  if (empty) empty.remove();
-
-  const li = document.createElement('li');
-  li.className = 'queue-item new-item';
-  li.id        = 'queue-item-' + data.id;
-  li.dataset.id = data.id;
-  li.innerHTML = `
-    <span class="q-number">${data.queue_number}</span>
-    <div class="q-info">
-      <div class="q-name">${data.visitor_name}</div>
-      <div class="q-purpose">${data.purpose || 'Tidak ada keterangan'}</div>
-    </div>
-    <span class="q-time">${data.created_at}</span>
-  `;
-  list.appendChild(li);
-}
-
-function removeQueueItem(id) {
-  const el = document.getElementById('queue-item-' + id);
-  if (el) {
-    el.style.opacity = '0';
-    el.style.transform = 'translateX(20px)';
-    el.style.transition = 'all .3s';
-    setTimeout(() => {
-      el.remove();
-      if (document.querySelectorAll('.queue-item').length === 0) {
-        const list = document.getElementById('queue-list');
-        list.innerHTML = `<li class="empty-state" id="empty-state"><span class="emoji">🎉</span>Belum ada antrian yang menunggu</li>`;
-      }
-    }, 300);
-  }
-}
-
-function updateStats(waitingCount) {
-  document.getElementById('stat-waiting').textContent  = waitingCount;
-  document.getElementById('waiting-badge').textContent = waitingCount;
-}
-
-function updateActiveBox(queue, loketName) {
-  const box = document.getElementById('active-box');
-  if (queue) {
-    box.innerHTML = `
-      <div class="active-label">Nomor Antrian</div>
-      <div class="active-number" id="active-number">${queue.queue_number}</div>
-      <div class="active-name" id="active-name">${queue.visitor_name}</div>
-      <div class="active-purpose" id="active-purpose">${queue.purpose || '–'}</div>
-    `;
-    document.getElementById('btn-recall').disabled = false;
-    document.getElementById('btn-skip').disabled   = false;
-    document.getElementById('btn-done').disabled   = false;
-  } else {
-    box.innerHTML = `
-      <div style="padding:1.5rem 0;color:var(--muted)">
-        <div style="font-size:3rem">🟢</div>
-        <div style="margin-top:.5rem;font-weight:600">Siap Melayani</div>
-        <div style="font-size:.85rem;margin-top:.25rem">Klik "Panggil" untuk memanggil antrian berikutnya</div>
-      </div>`;
-    document.getElementById('btn-recall').disabled = true;
-    document.getElementById('btn-skip').disabled   = true;
-    document.getElementById('btn-done').disabled   = true;
-  }
-}
-
-// ---- API Actions ----
-async function callQueue() {
-  const btn = document.getElementById('btn-call');
-  btn.disabled = true;
-  btn.textContent = '⏳ Memproses...';
-
-  try {
-    const res  = await post('{{ route("operator.queue.call") }}', {});
-    const data = await res.json();
-
-    if (res.ok) {
-      activeQueueId   = data.queue.id;
-      activeQueueData = data.queue;
-      updateActiveBox(data.queue, data.loket_name);
-      removeQueueItem(data.queue.id);
-      showToast('📢 Memanggil ' + data.queue_number, 'success');
-    } else {
-      showToast(data.message, 'error');
+    function updateConn(ok) {
+        const dot   = document.getElementById('conn-dot');
+        const label = document.getElementById('conn-label');
+        if (dot) dot.className = 'conn-dot ' + (ok ? 'connected' : 'disconnected');
+        if (label) label.textContent = ok ? 'Terhubung' : 'Terputus';
     }
-  } catch(e) {
-    showToast('Gagal terhubung ke server.', 'error');
-  }
 
-  btn.disabled    = false;
-  btn.innerHTML   = '📢 Panggil Berikutnya';
-}
+    // ---- DOM Helpers ----
+    function addQueueItem(data) {
+        const list  = document.getElementById('queue-list');
+        const empty = document.getElementById('empty-state');
+        if (empty) empty.remove();
 
-async function recallQueue() {
-  if (!activeQueueId) return;
-  const res  = await post(`/operator/queue/${activeQueueId}/recall`, {});
-  const data = await res.json();
-  showToast(res.ok ? '🔁 ' + data.message : data.message, res.ok ? 'success' : 'error');
-}
+        if (document.getElementById('queue-item-' + data.id)) return;
 
-async function skipQueue() {
-  if (!activeQueueId) return;
-  if (!confirm('Lewati antrian ini? Pengunjung tidak akan dilayani.')) return;
+        const li = document.createElement('li');
+        li.className = 'queue-item new-item';
+        li.id        = 'queue-item-' + data.id;
+        li.dataset.id = data.id;
+        li.innerHTML = `
+            <span class="q-number">${data.queue_number}</span>
+            <div class="q-info">
+                <div class="q-name">${data.visitor_name}</div>
+                <div class="q-purpose">${data.purpose || 'Tidak ada keterangan'}</div>
+            </div>
+            <span class="q-time">${data.created_at}</span>
+        `;
+        list.appendChild(li);
+    }
 
-  const res  = await post(`/operator/queue/${activeQueueId}/skip`, {});
-  const data = await res.json();
+    function removeQueueItem(id) {
+        const el = document.getElementById('queue-item-' + id);
+        if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(20px)';
+            el.style.transition = 'all .3s';
+            setTimeout(() => {
+                el.remove();
+                if (document.querySelectorAll('.queue-item').length === 0) {
+                    const list = document.getElementById('queue-list');
+                    list.innerHTML = `<li class="empty-state" id="empty-state"><span class="emoji">🎉</span>Belum ada antrian yang menunggu</li>`;
+                }
+            }, 300);
+        }
+    }
 
-  if (res.ok) {
-    activeQueueId = null;
-    activeQueueData = null;
-    updateActiveBox(null);
-    updateStats(data.waiting_count);
-    showToast('⏭️ Antrian dilewati.', 'success');
-  }
-}
+    function updateStats(waitingCount) {
+        document.getElementById('stat-waiting').textContent  = waitingCount;
+        document.getElementById('waiting-badge').textContent = waitingCount;
+    }
 
-async function completeQueue() {
-  if (!activeQueueId) return;
+    function updateActiveBox(queue) {
+        const box = document.getElementById('active-box');
+        if (queue) {
+            box.innerHTML = `
+                <div class="active-label">Nomor Antrian</div>
+                <div class="active-number" id="active-number">${queue.queue_number}</div>
+                <div class="active-name" id="active-name">${queue.visitor_name}</div>
+                <div class="active-purpose" id="active-purpose">${queue.purpose || '–'}</div>
+            `;
+            document.getElementById('btn-recall').disabled = false;
+            document.getElementById('btn-skip').disabled   = false;
+            document.getElementById('btn-done').disabled   = false;
+        } else {
+            box.innerHTML = `
+                <div style="padding:1.5rem 0;color:var(--muted)">
+                    <div style="font-size:3rem">🟢</div>
+                    <div style="margin-top:.5rem;font-weight:600">Siap Melayani</div>
+                    <div style="font-size:.85rem;margin-top:.25rem">Klik "Panggil" untuk memanggil antrian berikutnya</div>
+                </div>`;
+            document.getElementById('btn-recall').disabled = true;
+            document.getElementById('btn-skip').disabled   = true;
+            document.getElementById('btn-done').disabled   = true;
+        }
+    }
 
-  const res  = await post(`/operator/queue/${activeQueueId}/complete`, {});
-  const data = await res.json();
+    // ---- API Actions ----
+    window.callQueue = async function() {
+        const btn = document.getElementById('btn-call');
+        btn.disabled = true;
+        btn.textContent = '⏳ Memproses...';
 
-  if (res.ok) {
-    activeQueueId = null;
-    activeQueueData = null;
-    updateActiveBox(null);
-    updateStats(data.waiting_count);
-    // Increment selesai counter
-    const el = document.getElementById('stat-served');
-    el.textContent = parseInt(el.textContent) + 1;
-    showToast('✅ Antrian selesai dilayani.', 'success');
-  }
-}
+        try {
+            const res  = await post('{{ route("operator.queue.call") }}', {});
+            const data = await res.json();
 
-function post(url, data) {
-  return fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
-    body: JSON.stringify(data),
-  });
-}
+            if (res.ok) {
+                activeQueueId = data.queue.id;
+                updateActiveBox(data.queue);
+                removeQueueItem(data.queue.id);
+                showToast('📢 Memanggil ' + data.queue_number, 'success');
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch(e) {
+            showToast('Gagal terhubung ke server.', 'error');
+        }
 
-// ---- Toast ----
-let toastTimer;
-function showToast(msg, type = 'success') {
-  const el = document.getElementById('toast');
-  el.textContent  = msg;
-  el.className    = 'toast show ' + type;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
-}
+        btn.disabled    = false;
+        btn.innerHTML   = '📢 Panggil Berikutnya';
+    }
+
+    window.recallQueue = async function() {
+        if (!activeQueueId) return;
+        try {
+            const res  = await post(`/operator/queue/${activeQueueId}/recall`, {});
+            const data = await res.json();
+            showToast(res.ok ? '🔁 ' + data.message : data.message, res.ok ? 'success' : 'error');
+        } catch(e) { showToast('Gagal terhubung ke server.', 'error'); }
+    }
+
+    window.skipQueue = async function() {
+        if (!activeQueueId) return;
+        if (!confirm('Lewati antrian ini? Pengunjung tidak akan dilayani.')) return;
+
+        try {
+            const res  = await post(`/operator/queue/${activeQueueId}/skip`, {});
+            const data = await res.json();
+
+            if (res.ok) {
+                activeQueueId = null;
+                updateActiveBox(null);
+                updateStats(data.waiting_count);
+                // Increment skipped counter
+                const el = document.getElementById('stat-skipped');
+                el.textContent = parseInt(el.textContent) + 1;
+                showToast('⏭️ Antrian dilewati.', 'success');
+            } else { showToast(data.message, 'error'); }
+        } catch(e) { showToast('Gagal terhubung ke server.', 'error'); }
+    }
+
+    window.completeQueue = async function() {
+        if (!activeQueueId) return;
+
+        try {
+            const res  = await post(`/operator/queue/${activeQueueId}/complete`, {});
+            const data = await res.json();
+
+            if (res.ok) {
+                activeQueueId = null;
+                updateActiveBox(null);
+                updateStats(data.waiting_count);
+                // Increment selesai counter
+                const el = document.getElementById('stat-served');
+                el.textContent = parseInt(el.textContent) + 1;
+                showToast('✅ Antrian selesai dilayani.', 'success');
+            } else { showToast(data.message, 'error'); }
+        } catch(e) { showToast('Gagal terhubung ke server.', 'error'); }
+    }
+
+    function post(url, data) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+            body: JSON.stringify(data),
+        });
+    }
+
+    // ---- Toast ----
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const el = document.getElementById('toast');
+        el.textContent  = msg;
+        el.className    = 'toast show ' + type;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+    }
+});
 </script>
 </body>
 </html>
