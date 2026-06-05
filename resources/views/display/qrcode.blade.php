@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html lang="id">
+@extends('layouts.display')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Antrian - Sini Antri</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+@section('title', 'QR Code Antrian')
+
+@section('body_class', 'bg-[#fef2f2] min-h-screen flex items-center justify-center p-6 font-sans')
+
+@push('styles')
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
@@ -25,26 +21,12 @@
         }
     </style>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#b10303',
-                        'primary-dark': '#8b0202',
-                        bg: '#fef2f2',
-                        card: '#ffffff',
-                        text: '#1e293b',
-                        muted: '#64748b',
-                        border: '#e2e8f0',
-                        success: '#059669',
-                    }
-                }
-            }
-        }
+        // Override tailwind config for specific colors if needed, 
+        // but it's better to keep it consistent with the layout.
     </script>
-</head>
+@endpush
 
-<body class="bg-[#fef2f2] min-h-screen flex items-center justify-center p-6 font-sans">
+@section('content')
     <div class="text-center">
         <div class="bg-white rounded-2xl shadow-xl shadow-slate-200 p-8 md:p-12 inline-block min-w-[340px] max-w-md">
 
@@ -98,6 +80,4 @@
                 Made with ❤️ Adi Arta Wibawa</p>
         </div>
     </div>
-</body>
-
-</html>
+@endsection
