@@ -14,43 +14,7 @@
         rel="stylesheet">
 
     <style>
-        :root {
-            --red: #c0392b;
-            --red-dim: rgba(192, 57, 43, 0.18);
-            --red-glow: rgba(192, 57, 43, 0.35);
-            --bg-base: #07090f;
-            --bg-card: rgba(255, 255, 255, 0.032);
-            --bg-card-hover: rgba(255, 255, 255, 0.06);
-            --border: rgba(255, 255, 255, 0.07);
-            --border-accent: rgba(192, 57, 43, 0.4);
-            --text-primary: #f0f2f8;
-            --text-muted: rgba(200, 210, 230, 0.45);
-            --text-dim: rgba(200, 210, 230, 0.2);
-            --font-display: 'Roboto Condensed', sans-serif;
-            --font-body: 'Roboto', sans-serif;
-            --font-mono: 'Roboto Mono', monospace;
-            --radius: 14px;
-            --radius-sm: 8px;
-        }
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: var(--font-body);
-            background: var(--bg-base);
-            color: var(--text-primary);
-            height: 100dvh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
+        /* ─── Things Tailwind cannot express ─── */
 
         /* Ambient background grid */
         body::before {
@@ -65,6 +29,7 @@
             z-index: 0;
         }
 
+        /* Red ambient glow */
         body::after {
             content: '';
             position: fixed;
@@ -74,227 +39,50 @@
             z-index: 0;
         }
 
-        /* ─── HEADER ─── */
-        header {
-            position: relative;
-            z-index: 10;
-            height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(7, 9, 15, 0.7);
-            backdrop-filter: blur(20px);
-            flex-shrink: 0;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .brand-icon {
-            width: 44px;
-            height: 44px;
-            background: var(--red);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #fff;
-            flex-shrink: 0;
-            box-shadow: 0 4px 20px var(--red-glow);
-            position: relative;
-            overflow: hidden;
-        }
-
+        /* Brand icon shine */
         .brand-icon::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
         }
 
-        .brand-name {
-            font-family: var(--font-display);
-            font-weight: 800;
-            font-size: 22px;
-            letter-spacing: -0.5px;
-            line-height: 1;
-        }
-
-        .brand-name span {
-            color: var(--red);
-        }
-
-        .brand-tagline {
-            font-size: 10px;
-            color: var(--text-muted);
-            letter-spacing: 0.18em;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 99px;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            font-size: 11px;
-            font-weight: 600;
-            color: #10b981;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            background: #10b981;
-            border-radius: 50%;
-            animation: blink 2s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
-            }
-
-            50% {
-                opacity: 0.7;
-                box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
-            }
-        }
-
-        .clock-block {
-            text-align: right;
-        }
-
-        #clock {
-            font-family: var(--font-mono);
-            font-size: 28px;
-            font-weight: 500;
-            color: var(--red);
-            letter-spacing: 0.04em;
-            line-height: 1;
-        }
-
-        .clock-date {
-            font-size: 10px;
-            color: var(--text-muted);
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-
-        /* ─── MAIN ─── */
-        main {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-            position: relative;
-            z-index: 1;
-            gap: 0;
-        }
-
-        /* ─── VIDEO PANEL ─── */
-        .video-panel {
-            flex: 2.2;
-            position: relative;
-            background: #000;
-            overflow: hidden;
-        }
-
-        .video-panel::after {
+        /* Video right-edge fade */
+        .video-fade::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to right, transparent 75%, var(--bg-base) 100%);
+            background: linear-gradient(to right, transparent 75%, #07090f 100%);
             pointer-events: none;
             z-index: 2;
         }
 
-        #youtube-player {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* ─── QUEUE PANEL ─── */
-        .queue-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            overflow: hidden;
-            padding: 20px 20px 0;
-            border-left: 1px solid var(--border);
-            background: rgba(7, 9, 15, 0.5);
-            backdrop-filter: blur(30px);
-            min-width: 320px;
-            max-width: 420px;
-        }
-
-        /* ─── SECTION LABEL ─── */
-        .section-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .section-label span {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-        }
-
-        .section-label::before {
+        /* Footer left/right fade edges */
+        .ticker-fade::before {
             content: '';
-            display: block;
-            width: 3px;
-            height: 14px;
-            background: var(--red);
-            border-radius: 2px;
-            flex-shrink: 0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 120px;
+            background: linear-gradient(to right, #c0392b, transparent);
+            z-index: 2;
+            pointer-events: none;
         }
 
-        /* ─── NOW SERVING CARD ─── */
-        .serving-block {
-            flex-shrink: 0;
-            margin-bottom: 16px;
+        .ticker-fade::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            width: 120px;
+            background: linear-gradient(to left, #c0392b, transparent);
+            z-index: 2;
+            pointer-events: none;
         }
 
-        #now-serving-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 28px 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
+        /* Now-serving card top shimmer line */
         #now-serving-card::before {
             content: '';
             position: absolute;
@@ -302,7 +90,7 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--red), transparent);
+            background: linear-gradient(90deg, transparent, #c0392b, transparent);
             opacity: 0;
             transition: opacity 0.5s;
         }
@@ -311,186 +99,18 @@
             opacity: 1;
         }
 
-        #now-serving-card.active {
-            border-color: var(--border-accent);
-            background: rgba(192, 57, 43, 0.05);
-        }
-
-        .card-label {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .queue-number {
-            font-family: var(--font-display);
-            font-size: 96px;
-            font-weight: 800;
-            line-height: 0.9;
-            letter-spacing: -4px;
-            color: var(--text-primary);
-        }
-
-        .loket-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 16px;
-            padding: 7px 18px;
-            background: var(--red-dim);
-            color: #e87870;
-            border: 1px solid var(--border-accent);
-            border-radius: 99px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-        }
-
-        .visitor-name {
-            margin-top: 14px;
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 0 12px;
-        }
-
-        .empty-state {
-            padding: 32px 0;
-            opacity: 0.3;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .empty-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            color: var(--text-muted);
-        }
-
-        .empty-text {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
-        /* ─── NEXT QUEUE LIST ─── */
-        .next-block {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        #next-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-right: 4px;
-            padding-bottom: 16px;
-        }
-
-        #next-list::-webkit-scrollbar {
+        /* Section label left bar */
+        .section-label::before {
+            content: '';
+            display: block;
             width: 3px;
-        }
-
-        #next-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        #next-list::-webkit-scrollbar-thumb {
-            background: var(--border);
+            height: 14px;
+            background: #c0392b;
             border-radius: 2px;
-        }
-
-        .queue-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 16px;
-            border-radius: var(--radius-sm);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            transition: background 0.2s, border-color 0.2s;
-            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-
-        .queue-item:hover {
-            background: var(--bg-card-hover);
-            border-color: rgba(255, 255, 255, 0.12);
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(16px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .qi-num {
-            width: 52px;
-            height: 52px;
-            border-radius: var(--radius-sm);
-            background: rgba(192, 57, 43, 0.1);
-            border: 1px solid rgba(192, 57, 43, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-display);
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--red);
             flex-shrink: 0;
         }
 
-        .qi-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .qi-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .qi-status {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            margin-top: 3px;
-        }
-
+        /* Queue waiting dot */
         .qi-status::before {
             content: '';
             display: block;
@@ -500,138 +120,33 @@
             border-radius: 50%;
         }
 
-        .empty-list {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            opacity: 0.25;
-            padding: 32px;
+        /* Thin scrollbar */
+        #next-list::-webkit-scrollbar {
+            width: 3px;
         }
 
-        .empty-list i {
-            font-size: 28px;
-            color: var(--text-muted);
+        #next-list::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .empty-list p {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-muted);
-            text-align: center;
-            font-style: italic;
+        #next-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 2px;
         }
 
-        /* ─── TICKER ─── */
-        footer {
-            position: relative;
-            z-index: 10;
-            height: 46px;
-            background: var(--red);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            flex-shrink: 0;
-        }
+        /* ─── Keyframes ─── */
+        @keyframes blink {
 
-        footer::before {
-            content: '';
-            position: absolute;
-            inset-y: 0;
-            left: 0;
-            width: 120px;
-            background: linear-gradient(to right, var(--red), transparent);
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        footer::after {
-            content: '';
-            position: absolute;
-            inset-y: 0;
-            right: 0;
-            width: 120px;
-            background: linear-gradient(to left, var(--red), transparent);
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .ticker-track {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            white-space: nowrap;
-            will-change: transform;
-        }
-
-        .ticker-content {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            animation: ticker 35s linear infinite;
-        }
-
-        .ticker-content span {
-            font-size: 14px;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.92);
-            padding: 0 32px;
-        }
-
-        .ticker-dot {
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        @keyframes ticker {
-            0% {
-                transform: translateX(0);
-            }
-
+            0%,
             100% {
-                transform: translateX(-50%);
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
             }
-        }
 
-        /* ─── OVERLAYS ─── */
-        #flash-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(192, 57, 43, 0.15);
-            opacity: 0;
-            pointer-events: none;
-            z-index: 90;
-            transition: opacity 0.3s ease;
-        }
-
-        #start-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(7, 9, 15, 0.96);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-        }
-
-        .overlay-icon-ring {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 2px solid rgba(192, 57, 43, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            animation: ringPulse 2.5s ease-in-out infinite;
+            50% {
+                opacity: .7;
+                box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+            }
         }
 
         @keyframes ringPulse {
@@ -646,47 +161,31 @@
             }
         }
 
-        .overlay-icon {
-            width: 88px;
-            height: 88px;
-            background: var(--red);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 34px;
-            color: #fff;
-            box-shadow: 0 8px 40px rgba(192, 57, 43, 0.5);
-            transition: transform 0.2s;
+        @keyframes ticker {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
         }
 
-        #start-overlay:hover .overlay-icon {
-            transform: scale(1.06);
-        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(16px);
+                opacity: 0;
+            }
 
-        .overlay-title {
-            font-family: var(--font-display);
-            font-size: 26px;
-            font-weight: 800;
-            margin-top: 28px;
-            letter-spacing: -0.5px;
-        }
-
-        .overlay-sub {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 8px;
-            font-weight: 500;
-        }
-
-        /* ─── ANIMATIONS ─── */
-        .ns-enter {
-            animation: nsEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         @keyframes nsEnter {
             0% {
-                transform: scale(0.75);
+                transform: scale(.75);
                 opacity: 0;
                 filter: blur(8px);
             }
@@ -702,55 +201,40 @@
             }
         }
 
-        /* ─── RESPONSIVE ─── */
-        @media (max-width: 900px) {
-            main {
-                flex-direction: column;
-            }
-
-            .video-panel {
-                flex: 1.2;
-            }
-
-            .video-panel::after {
-                background: linear-gradient(to bottom, transparent 75%, var(--bg-base) 100%);
-            }
-
-            .queue-panel {
-                flex: 1;
-                min-width: unset;
-                max-width: unset;
-                border-left: none;
-                border-top: 1px solid var(--border);
-            }
+        /* ─── Animation utility classes ─── */
+        .animate-blink {
+            animation: blink 2s ease-in-out infinite;
         }
 
-        @media (max-width: 600px) {
-            header {
-                padding: 0 16px;
-                height: 60px;
-            }
+        .animate-ring-pulse {
+            animation: ringPulse 2.5s ease-in-out infinite;
+        }
 
-            .status-badge {
-                display: none;
-            }
+        .animate-ticker {
+            animation: ticker 35s linear infinite;
+        }
 
-            #clock {
-                font-size: 22px;
-            }
+        .animate-slide-in {
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
 
-            .queue-panel {
-                padding: 14px 14px 0;
-            }
+        .animate-ns-enter {
+            animation: nsEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
 
-            .queue-number {
-                font-size: 72px;
-            }
+        /* ─── Custom font utility classes ─── */
+        .font-display {
+            font-family: 'Roboto Condensed', sans-serif;
+        }
+
+        .font-mono {
+            font-family: 'Roboto Mono', monospace;
         }
     </style>
 </head>
 
-<body>
+<body class="font-['Roboto',sans-serif] bg-[#07090f] text-[#f0f2f8] h-dvh overflow-hidden flex flex-col relative">
+
     @php
         $youtubeId = 'dQw4w9WgXcQ';
         if ($setting?->youtube_url) {
@@ -763,82 +247,164 @@
         }
     @endphp
 
-    <!-- Header -->
-    <header>
-        <div class="brand">
-            <div class="brand-icon">
-                <i class="fa-solid fa-ticket"></i>
+    {{-- ─── HEADER ─── --}}
+    <header
+        class="relative z-10 h-[72px] flex-shrink-0
+                   flex items-center justify-between px-7
+                   border-b border-white/[0.07]
+                   bg-[rgba(7,9,15,0.7)] backdrop-blur-xl">
+
+        {{-- Brand --}}
+        <div class="flex items-center gap-3.5">
+            <div
+                class="brand-icon relative w-11 h-11 rounded-lg flex items-center justify-center
+                        overflow-hidden flex-shrink-0 bg-[#c0392b]
+                        shadow-[0_4px_20px_rgba(192,57,43,0.35)]">
+                <img src="https://cdn-sdotid.adg.id/images/538b9b6d-01d4-48bd-88b4-ec673432266e_320x320.png"
+                    class="w-full h-full object-cover" alt="Logo">
             </div>
             <div>
-                <div class="brand-name">SINI <span>ANTRI</span></div>
-                <div class="brand-tagline">Digital Queue System v2.0</div>
+                <div class="font-display font-black text-[22px] leading-none uppercase tracking-wide">
+                    SINI <span class="text-[#c0392b]">ANTRI</span> | SMKN 3 TABANAN
+                </div>
+                <div class="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                    Digital Queue System v1.0 - AdiArtaWibawa
+                </div>
             </div>
         </div>
 
-        <div class="header-right">
-            <div class="status-badge">
-                <span class="status-dot"></span>
+        {{-- Right --}}
+        <div class="flex items-center gap-6">
+            {{-- Live badge --}}
+            <div
+                class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full
+                        bg-emerald-500/[0.08] border border-emerald-500/20
+                        text-[11px] font-semibold uppercase tracking-[0.06em] text-emerald-400">
+                <span class="animate-blink w-[7px] h-[7px] rounded-full bg-emerald-400 inline-block"></span>
                 Sistem Aktif
             </div>
-            <div class="clock-block">
-                <div id="clock">00:00:00</div>
-                <div class="clock-date">{{ now()->translatedFormat('l, d F Y') }}</div>
+            {{-- Clock --}}
+            <div class="text-right">
+                <div id="clock"
+                    class="font-mono text-[28px] font-medium leading-none tracking-[0.04em] text-[#c0392b]">
+                    00:00:00
+                </div>
+                <div class="mt-1 text-[10px] text-white/45 uppercase tracking-[0.12em]">
+                    {{ now()->translatedFormat('l, d F Y') }}
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main -->
-    <main>
-        <!-- Video Panel -->
-        <section class="video-panel">
-            <div id="youtube-player"></div>
+    {{-- ─── MAIN ─── --}}
+    <main class="flex-1 flex overflow-hidden relative z-[1] flex-col md:flex-row">
+
+        {{-- Video Panel --}}
+        <section class="video-fade relative bg-black overflow-hidden flex-[2.2]">
+            <div id="youtube-player" class="absolute inset-0 w-full h-full"></div>
         </section>
 
-        <!-- Queue Panel -->
-        <section class="queue-panel">
-            <!-- Now Serving -->
-            <div class="serving-block">
-                <div class="section-label">
-                    <span>Sedang Dilayani</span>
+        {{-- Queue Panel --}}
+        <section
+            class="flex-1 flex flex-col overflow-hidden
+                        pt-5 px-5 pb-0
+                        border-t border-white/[0.07]
+                        md:border-t-0 md:border-l md:border-white/[0.07]
+                        md:min-w-[320px] md:max-w-[420px]
+                        max-sm:px-3.5
+                        bg-[rgba(7,9,15,0.5)] backdrop-blur-[30px]">
+
+            {{-- Now Serving --}}
+            <div class="flex-shrink-0 mb-4">
+                <div class="section-label flex items-center gap-2.5 mb-2.5">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                        Sedang Dilayani
+                    </span>
                 </div>
-                <div id="now-serving-card" class="{{ $currentQueue ? 'active' : '' }}">
+
+                <div id="now-serving-card"
+                    class="relative overflow-hidden rounded-[14px] px-5 py-7 text-center
+                            bg-white/[0.032] border border-white/[0.07]
+                            transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+                            {{ $currentQueue ? 'active !border-[rgba(192,57,43,0.4)] !bg-[rgba(192,57,43,0.05)]' : '' }}">
+
                     @if ($currentQueue)
-                        <div class="card-label">Nomor Antrian</div>
-                        <div class="queue-number ns-enter" id="ns-number">{{ $currentQueue->queue_number }}</div>
-                        <div class="loket-badge" id="ns-loket">
-                            <i class="fa-solid fa-location-dot" style="font-size:10px;"></i>
+                        <div class="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 mb-2">
+                            Nomor Antrian
+                        </div>
+                        <div id="ns-number"
+                            class="animate-ns-enter font-display font-black text-[96px] max-sm:text-[72px]
+                                    leading-[0.9] tracking-[-4px] text-[#f0f2f8]">
+                            {{ $currentQueue->queue_number }}
+                        </div>
+                        <div id="ns-loket"
+                            class="inline-flex items-center gap-1.5 mt-4 px-[18px] py-[7px] rounded-full
+                                    bg-[rgba(192,57,43,0.18)] border border-[rgba(192,57,43,0.4)]
+                                    text-[#e87870] text-xs font-bold tracking-[0.06em]">
+                            <i class="fa-solid fa-location-dot text-[10px]"></i>
                             {{ $currentQueue->operator?->loket_name ?? 'Loket' }}
                         </div>
-                        <div class="visitor-name" id="ns-name">{{ $currentQueue->visitor_name }}</div>
+                        <div id="ns-name"
+                            class="mt-3.5 text-lg font-semibold text-[#f0f2f8]
+                                    whitespace-nowrap overflow-hidden text-ellipsis px-3">
+                            {{ $currentQueue->visitor_name }}
+                        </div>
                     @else
-                        <div class="empty-state">
-                            <div class="empty-icon">
+                        <div class="py-8 opacity-30 flex flex-col items-center gap-3">
+                            <div
+                                class="w-14 h-14 rounded-full bg-white/[0.04] border border-white/[0.07]
+                                        flex items-center justify-center text-[22px] text-white/45">
                                 <i class="fa-solid fa-hourglass-half"></i>
                             </div>
-                            <div class="empty-text">Menunggu antrian...</div>
+                            <div class="text-[13px] font-medium text-white/45">
+                                Menunggu antrian...
+                            </div>
                         </div>
                     @endif
                 </div>
             </div>
 
-            <!-- Next Queues -->
-            <div class="next-block">
-                <div class="section-label">
-                    <span>Antrian Berikutnya</span>
+            {{-- Next Queues --}}
+            <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+                <div class="section-label flex items-center gap-2.5 mb-2.5">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                        Antrian Berikutnya
+                    </span>
                 </div>
-                <div id="next-list">
+
+                <div id="next-list" class="flex-1 overflow-y-auto flex flex-col gap-2 pr-1 pb-4">
                     @forelse ($nextQueues as $i => $q)
-                        <div class="queue-item" style="animation-delay: {{ $i * 80 }}ms">
-                            <div class="qi-num">{{ $q->queue_number }}</div>
-                            <div class="qi-info">
-                                <div class="qi-name">{{ $q->visitor_name }}</div>
-                                <div class="qi-status">Menunggu</div>
+                        <div class="animate-slide-in flex items-center gap-3.5 px-4 py-3.5
+                                    rounded-lg bg-white/[0.04] border border-white/[0.07]
+                                    hover:bg-white/[0.06] hover:border-white/[0.12]
+                                    transition-[background,border-color] duration-200"
+                            style="animation-delay: {{ $i * 80 }}ms">
+                            <div
+                                class="flex-shrink-0 w-[52px] h-[52px] rounded-lg
+                                        flex items-center justify-center
+                                        bg-[rgba(192,57,43,0.1)] border border-[rgba(192,57,43,0.2)]
+                                        font-display text-[22px] font-bold text-[#c0392b]">
+                                {{ $q->queue_number }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div
+                                    class="text-[15px] font-semibold text-[#f0f2f8]
+                                            overflow-hidden text-ellipsis whitespace-nowrap">
+                                    {{ $q->visitor_name }}
+                                </div>
+                                <div
+                                    class="qi-status flex items-center gap-1.5 mt-0.5
+                                            text-[10px] font-bold uppercase tracking-[0.1em] text-white/20">
+                                    Menunggu
+                                </div>
                             </div>
                         </div>
                     @empty
-                        <div class="empty-list">
-                            <i class="fa-regular fa-clock"></i>
-                            <p>Belum ada antrian lain</p>
+                        <div class="flex-1 flex flex-col items-center justify-center gap-2.5 opacity-25 p-8">
+                            <i class="fa-regular fa-clock text-[28px] text-white/45"></i>
+                            <p class="text-xs font-medium text-white/45 text-center italic">
+                                Belum ada antrian lain
+                            </p>
                         </div>
                     @endforelse
                 </div>
@@ -846,39 +412,68 @@
         </section>
     </main>
 
-    <!-- Footer Ticker -->
-    <footer>
-        <div class="ticker-track">
-            <div class="ticker-content" id="ticker-content">
-                <span>Selamat Datang di Layanan Antrian Digital Sini Antri</span>
-                <span class="ticker-dot"></span>
-                <span>Silakan ambil nomor antrian di mesin yang tersedia</span>
-                <span class="ticker-dot"></span>
-                <span>Harap menunggu nomor antrian Anda dipanggil oleh petugas</span>
-                <span class="ticker-dot"></span>
-                <span>Pastikan Anda membawa dokumen persyaratan yang diperlukan</span>
-                <span class="ticker-dot"></span>
-                <span>Terima kasih atas kesabaran dan ketertiban Anda</span>
-                <span class="ticker-dot"></span>
+    {{-- ─── TICKER FOOTER ─── --}}
+    <footer
+        class="ticker-fade relative z-10 h-[46px] flex-shrink-0 flex items-center
+                   overflow-hidden bg-[#c0392b]">
+        <div class="flex items-center whitespace-nowrap will-change-transform">
+            <div id="ticker-content" class="animate-ticker flex items-center">
+                <span class="text-sm font-bold text-white/[0.92] px-8">
+                    Selamat Datang di Layanan Antrian Digital Sini Antri
+                </span>
+                <span class="w-[5px] h-[5px] rounded-full bg-white/50 flex-shrink-0"></span>
+                <span class="text-sm font-bold text-white/[0.92] px-8">
+                    Silakan ambil nomor antrian di mesin yang tersedia
+                </span>
+                <span class="w-[5px] h-[5px] rounded-full bg-white/50 flex-shrink-0"></span>
+                <span class="text-sm font-bold text-white/[0.92] px-8">
+                    Harap menunggu nomor antrian Anda dipanggil oleh petugas
+                </span>
+                <span class="w-[5px] h-[5px] rounded-full bg-white/50 flex-shrink-0"></span>
+                <span class="text-sm font-bold text-white/[0.92] px-8">
+                    Pastikan Anda membawa dokumen persyaratan yang diperlukan
+                </span>
+                <span class="w-[5px] h-[5px] rounded-full bg-white/50 flex-shrink-0"></span>
+                <span class="text-sm font-bold text-white/[0.92] px-8">
+                    Terima kasih atas kesabaran dan ketertiban Anda
+                </span>
+                <span class="w-[5px] h-[5px] rounded-full bg-white/50 flex-shrink-0"></span>
             </div>
         </div>
     </footer>
 
-    <!-- Flash Overlay -->
-    <div id="flash-overlay"></div>
+    {{-- Flash overlay --}}
+    <div id="flash-overlay"
+        class="fixed inset-0 bg-[rgba(192,57,43,0.15)] opacity-0 pointer-events-none
+                z-[90] transition-opacity duration-300">
+    </div>
 
-    <!-- Start Overlay -->
-    <div id="start-overlay">
-        <div class="overlay-icon-ring">
-            <div class="overlay-icon">
+    {{-- Start overlay --}}
+    <div id="start-overlay"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center
+                cursor-pointer bg-[rgba(7,9,15,0.96)] backdrop-blur-lg">
+        <div
+            class="animate-ring-pulse w-[120px] h-[120px] rounded-full
+                    border-2 border-[rgba(192,57,43,0.3)]
+                    flex items-center justify-center">
+            <div
+                class="w-[88px] h-[88px] rounded-full bg-[#c0392b]
+                        flex items-center justify-center text-[34px] text-white
+                        shadow-[0_8px_40px_rgba(192,57,43,0.5)]
+                        transition-transform duration-200
+                        [#start-overlay:hover_&]:scale-[1.06]">
                 <i class="fa-solid fa-volume-high"></i>
             </div>
         </div>
-        <div class="overlay-title">Klik untuk Aktifkan Suara</div>
-        <p class="overlay-sub">Layar akan otomatis memanggil nomor antrian</p>
+        <div class="font-display font-black text-[26px] mt-7 tracking-[-0.5px]">
+            Klik untuk Aktifkan Suara
+        </div>
+        <p class="mt-2 text-sm font-medium text-white/45">
+            Layar akan otomatis memanggil nomor antrian
+        </p>
     </div>
 
-    <!-- YouTube API -->
+    {{-- YouTube API --}}
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
@@ -900,7 +495,7 @@
                     enablejsapi: 1
                 },
                 events: {
-                    onReady: (e) => console.log('YT Ready')
+                    onReady: () => console.log('YT Ready')
                 }
             });
         }
@@ -910,30 +505,30 @@
             const audioQueue = [];
             let isProcessing = false;
 
+            // ── Start overlay ──
             overlay.addEventListener('click', () => {
-                overlay.style.opacity = '0';
                 overlay.style.transition = 'opacity 0.4s ease';
+                overlay.style.opacity = '0';
                 setTimeout(() => overlay.style.display = 'none', 400);
                 const silent = new Audio(
                     'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=='
-                    );
+                );
                 silent.play().catch(() => {});
-                if (player?.unMute) {
-                    player.unMute();
-                    player.setVolume(100);
-                    player.playVideo();
-                }
+                player?.unMute?.();
+                player?.setVolume?.(100);
+                player?.playVideo?.();
             });
 
-            function updateClock() {
-                document.getElementById('clock').textContent =
-                    new Date().toLocaleTimeString('id-ID', {
-                        hour12: false
-                    });
-            }
-            setInterval(updateClock, 1000);
-            updateClock();
+            // ── Clock ──
+            const clockEl = document.getElementById('clock');
+            const tick = () => clockEl.textContent =
+                new Date().toLocaleTimeString('id-ID', {
+                    hour12: false
+                });
+            setInterval(tick, 1000);
+            tick();
 
+            // ── Audio helpers ──
             async function playPlaylist(files) {
                 for (const file of files) {
                     await new Promise(resolve => {
@@ -946,15 +541,16 @@
             }
 
             async function processAudioQueue() {
-                if (isProcessing || audioQueue.length === 0) return;
+                if (isProcessing || !audioQueue.length) return;
                 isProcessing = true;
-                if (player?.setVolume) player.setVolume(15);
+                player?.setVolume?.(15);
                 await playPlaylist(audioQueue.shift());
-                if (player?.setVolume) player.setVolume(100);
+                player?.setVolume?.(100);
                 isProcessing = false;
                 processAudioQueue();
             }
 
+            // ── Realtime listener ──
             window.Echo.channel('display-screen').listen('QueueCalled', (data) => {
                 updateDisplay(data.queue_number, data.visitor_name, data.loket_name);
                 flashScreen();
@@ -962,32 +558,39 @@
                     audioQueue.push(data.audio_playlist);
                     processAudioQueue();
                 }
-                updateNextList();
+                refreshNextList();
             });
 
             function updateDisplay(number, name, loket) {
                 const card = document.getElementById('now-serving-card');
-                card.style.opacity = '0';
-                card.style.transform = 'scale(0.97)';
-                card.style.transition = 'all 0.25s ease';
+                card.style.cssText += 'opacity:0;transform:scale(0.97);transition:all 0.25s ease';
 
                 setTimeout(() => {
                     card.innerHTML = `
-                        <div class="card-label">Nomor Antrian</div>
-                        <div class="queue-number ns-enter" id="ns-number">${number}</div>
-                        <div class="loket-badge" id="ns-loket">
-                            <i class="fa-solid fa-location-dot" style="font-size:10px;"></i>
+                        <div class="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 mb-2">
+                            Nomor Antrian
+                        </div>
+                        <div id="ns-number"
+                             class="animate-ns-enter font-display font-black text-[96px]
+                                    leading-[0.9] tracking-[-4px] text-[#f0f2f8]">
+                            ${number}
+                        </div>
+                        <div id="ns-loket"
+                             class="inline-flex items-center gap-1.5 mt-4 px-[18px] py-[7px] rounded-full
+                                    bg-[rgba(192,57,43,0.18)] border border-[rgba(192,57,43,0.4)]
+                                    text-[#e87870] text-xs font-bold tracking-[0.06em]">
+                            <i class="fa-solid fa-location-dot text-[10px]"></i>
                             ${loket}
                         </div>
-                        <div class="visitor-name" id="ns-name">${name}</div>
+                        <div id="ns-name"
+                             class="mt-3.5 text-lg font-semibold text-[#f0f2f8]
+                                    whitespace-nowrap overflow-hidden text-ellipsis px-3">
+                            ${name}
+                        </div>
                     `;
                     card.classList.add('active');
-                    card.style.opacity = '1';
-                    card.style.transform = 'scale(1)';
-
-                    setTimeout(() => {
-                        card.classList.remove('active');
-                    }, 3000);
+                    card.style.cssText += 'opacity:1;transform:scale(1)';
+                    setTimeout(() => card.classList.remove('active'), 3000);
                 }, 250);
             }
 
@@ -997,30 +600,47 @@
                 setTimeout(() => el.style.opacity = '0', 500);
             }
 
-            function updateNextList() {
+            function refreshNextList() {
                 fetch('/display/status').then(r => r.json()).then(data => {
                     const list = document.getElementById('next-list');
                     if (!data.next?.length) {
                         list.innerHTML = `
-                            <div class="empty-list">
-                                <i class="fa-regular fa-clock"></i>
-                                <p>Belum ada antrian lain</p>
+                            <div class="flex-1 flex flex-col items-center justify-center gap-2.5 opacity-25 p-8">
+                                <i class="fa-regular fa-clock text-[28px] text-white/45"></i>
+                                <p class="text-xs font-medium text-white/45 text-center italic">
+                                    Belum ada antrian lain
+                                </p>
                             </div>`;
                         return;
                     }
                     list.innerHTML = data.next.map((q, i) => `
-                        <div class="queue-item" style="animation-delay:${i * 80}ms">
-                            <div class="qi-num">${q.queue_number}</div>
-                            <div class="qi-info">
-                                <div class="qi-name">${q.visitor_name}</div>
-                                <div class="qi-status">Menunggu</div>
+                        <div class="animate-slide-in flex items-center gap-3.5 px-4 py-3.5
+                                    rounded-lg bg-white/[0.04] border border-white/[0.07]
+                                    hover:bg-white/[0.06] hover:border-white/[0.12]
+                                    transition-[background,border-color] duration-200"
+                             style="animation-delay:${i * 80}ms">
+                            <div class="flex-shrink-0 w-[52px] h-[52px] rounded-lg
+                                        flex items-center justify-center
+                                        bg-[rgba(192,57,43,0.1)] border border-[rgba(192,57,43,0.2)]
+                                        font-display text-[22px] font-bold text-[#c0392b]">
+                                ${q.queue_number}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[15px] font-semibold text-[#f0f2f8]
+                                            overflow-hidden text-ellipsis whitespace-nowrap">
+                                    ${q.visitor_name}
+                                </div>
+                                <div class="qi-status flex items-center gap-1.5 mt-0.5
+                                            text-[10px] font-bold uppercase tracking-[0.1em] text-white/20">
+                                    Menunggu
+                                </div>
                             </div>
                         </div>
                     `).join('');
                 });
             }
 
-            // Clone ticker for seamless loop
+            // ── Seamless ticker loop ──
             const tc = document.getElementById('ticker-content');
             tc.innerHTML += tc.innerHTML;
         });
