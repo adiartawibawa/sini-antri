@@ -1,97 +1,86 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Operator</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: linear-gradient(135deg, #1e3a8a 0%, #1a56db 100%);
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem;
-  }
-  .card {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.25);
-    padding: 2.5rem 2rem;
-    width: 100%; max-width: 380px;
-  }
-  .logo { text-align:center; margin-bottom:2rem; }
-  .logo-icon {
-    width: 72px; height: 72px;
-    background: #1a56db;
-    border-radius: 20px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px;
-    margin: 0 auto 1rem;
-  }
-  h1 { font-size: 1.4rem; font-weight: 700; color: #1e293b; }
-  p  { color: #64748b; font-size: .875rem; margin-top:.25rem; }
-
-  .alert {
-    background: #fef2f2; border: 1px solid #fecaca;
-    color: #991b1b; border-radius: 10px;
-    padding: .75rem 1rem; font-size: .875rem;
-    margin-bottom: 1.25rem;
-  }
-  label {
-    display: block; font-size: .875rem; font-weight: 600;
-    color: #374151; margin-bottom: .4rem;
-  }
-  input[type=email], input[type=password] {
-    width: 100%; padding: .75rem 1rem;
-    border: 2px solid #e5e7eb; border-radius: 10px;
-    font-size: 1rem; color: #1e293b;
-    transition: border-color .2s;
-    margin-bottom: 1.25rem; font-family: inherit;
-  }
-  input:focus { outline: none; border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
-  .remember {
-    display: flex; align-items: center; gap: .5rem;
-    margin-bottom: 1.5rem; font-size: .875rem; color: #374151;
-  }
-  .btn {
-    width: 100%; padding: .875rem;
-    background: #1a56db; color: white;
-    border: none; border-radius: 12px;
-    font-size: 1rem; font-weight: 700; cursor: pointer;
-    transition: background .2s;
-  }
-  .btn:hover { background: #1343b3; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Operator - Sini Antri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#b10303',
+                        'primary-dark': '#8b0202',
+                        bg: '#fef2f2',
+                        card: '#ffffff',
+                        text: '#1e293b',
+                        muted: '#64748b',
+                        border: '#e2e8f0',
+                        success: '#059669',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-<div class="card">
-  <div class="logo">
-    <div class="logo-icon">🖥️</div>
-    <h1>Login Operator</h1>
-    <p>Masuk ke dashboard kelola antrian</p>
-  </div>
 
-  @if($errors->any())
-  <div class="alert">{{ $errors->first() }}</div>
-  @endif
+<body class="bg-[#fef2f2] min-h-screen flex items-center justify-center p-4 font-sans">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
 
-  <form method="POST" action="{{ route('login.post') }}">
-    @csrf
-    <label>Email</label>
-    <input type="email" name="email" value="{{ old('email') }}"
-           placeholder="loket1@antrian.test" required autofocus>
+        <!-- Logo & Title -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-[#b10303] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fa-solid fa-ticket-alt text-3xl text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-[#1e293b]">Login Operator</h1>
+            <p class="text-sm text-[#64748b] mt-1">Masuk ke dashboard kelola antrian</p>
+        </div>
 
-    <label>Password</label>
-    <input type="password" name="password" placeholder="••••••••" required>
+        <!-- Error Alert -->
+        @if ($errors->any())
+            <div
+                class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-5 flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                <span>{{ $errors->first() }}</span>
+            </div>
+        @endif
 
-    <div class="remember">
-      <input type="checkbox" name="remember" id="remember">
-      <label for="remember" style="margin:0">Ingat saya</label>
+        <!-- Login Form -->
+        <form method="POST" action="{{ route('login.post') }}">
+            @csrf
+
+            <!-- Email Field -->
+            <label class="block text-sm font-semibold text-[#1e293b] mb-1">
+                <i class="fa-regular fa-envelope mr-1"></i> Email
+            </label>
+            <input type="email" name="email" value="{{ old('email') }}" placeholder="loket1@antrian.test" required
+                autofocus
+                class="w-full px-4 py-3 border-2 border-[#e2e8f0] rounded-xl text-[#1e293b] focus:outline-none focus:border-[#b10303] focus:ring-3 focus:ring-[#b10303]/10 mb-4 transition">
+
+            <!-- Password Field -->
+            <label class="block text-sm font-semibold text-[#1e293b] mb-1">
+                <i class="fa-solid fa-lock mr-1"></i> Password
+            </label>
+            <input type="password" name="password" placeholder="••••••••" required
+                class="w-full px-4 py-3 border-2 border-[#e2e8f0] rounded-xl text-[#1e293b] focus:outline-none focus:border-[#b10303] focus:ring-3 focus:ring-[#b10303]/10 mb-5 transition">
+
+            <!-- Remember Me -->
+            <div class="flex items-center gap-2 mb-6">
+                <input type="checkbox" name="remember" id="remember"
+                    class="w-4 h-4 text-[#b10303] border-2 border-[#e2e8f0] rounded focus:ring-[#b10303] focus:ring-1">
+                <label for="remember" class="text-sm text-[#1e293b] cursor-pointer">Ingat saya</label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                class="w-full bg-[#b10303] hover:bg-[#8b0202] text-white font-bold py-3 rounded-xl transition active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk ke Dashboard
+            </button>
+        </form>
     </div>
-
-    <button type="submit" class="btn">Masuk ke Dashboard</button>
-  </form>
-</div>
 </body>
+
 </html>

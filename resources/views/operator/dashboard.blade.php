@@ -1,503 +1,457 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Operator – {{ Auth::user()->loket_name }}</title>
-<meta name="csrf-token" content="{{ csrf_token() }}">
-@vite(['resources/css/app.css', 'resources/js/echo.js'])
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --primary: #1a56db;
-    --primary-dark: #1343b3;
-    --bg: #f1f5f9;
-    --sidebar: #0f172a;
-    --card: #ffffff;
-    --text: #1e293b;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --green:  #059669;
-    --yellow: #d97706;
-    --red:    #dc2626;
-  }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  /* ---- Top Bar ---- */
-  .topbar {
-    background: var(--sidebar);
-    color: white;
-    padding: .875rem 1.5rem;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .topbar-brand { font-weight: 800; font-size: 1.1rem; display:flex; align-items:center; gap:.5rem; }
-  .topbar-right { display:flex; align-items:center; gap:1rem; font-size:.875rem; }
-  .loket-badge {
-    background: var(--primary);
-    padding: .3rem .75rem; border-radius: 999px;
-    font-weight: 700; font-size: .8rem;
-  }
-  .logout-btn {
-    background: none; border: 1px solid rgba(255,255,255,.3);
-    color: white; padding: .3rem .75rem; border-radius: 8px;
-    cursor: pointer; font-size: .8rem; transition: background .2s;
-  }
-  .logout-btn:hover { background: rgba(255,255,255,.1); }
-
-  /* ---- Main Layout ---- */
-  .main { display: grid; grid-template-columns: 1fr 380px; gap: 1.25rem; padding: 1.25rem; }
-  @media(max-width: 900px) { .main { grid-template-columns: 1fr; } }
-
-  /* ---- Cards ---- */
-  .card {
-    background: var(--card);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    overflow: hidden;
-  }
-  .card-header {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .card-title { font-weight: 700; font-size: 1rem; }
-  .count-badge {
-    background: var(--primary);
-    color: white;
-    font-size: .75rem; font-weight: 700;
-    padding: .2rem .6rem; border-radius: 999px;
-    min-width: 24px; text-align: center;
-  }
-
-  /* ---- Active Queue Box ---- */
-  .active-box {
-    padding: 1.5rem;
-    text-align: center;
-  }
-  .active-label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .active-number {
-    font-size: 5rem; font-weight: 900;
-    color: var(--primary); line-height: 1;
-    margin: .5rem 0;
-  }
-  .active-name { font-size: 1rem; font-weight: 600; color: var(--text); }
-  .active-purpose { font-size: .85rem; color: var(--muted); margin-top: .25rem; }
-
-  /* ---- Action Buttons ---- */
-  .actions {
-    display: grid; grid-template-columns: 1fr 1fr 1fr;
-    gap: .75rem; padding: .75rem 1.25rem 1.25rem;
-  }
-  .btn {
-    padding: .65rem .5rem;
-    border: none; border-radius: 10px;
-    font-size: .82rem; font-weight: 700; cursor: pointer;
-    transition: all .15s;
-    display: flex; align-items: center; justify-content: center; gap: .3rem;
-  }
-  .btn:active { transform: scale(.97); }
-  .btn-call    { background: var(--primary); color: white; grid-column: span 3; padding: 1rem; font-size: 1rem; }
-  .btn-call:hover { background: var(--primary-dark); }
-  .btn-recall  { background: #fffbeb; color: var(--yellow); border: 2px solid #fde68a; }
-  .btn-skip    { background: #fff1f2; color: var(--red);    border: 2px solid #fecaca; }
-  .btn-done    { background: #f0fdf4; color: var(--green);  border: 2px solid #6ee7b7; }
-  .btn:disabled { opacity: .4; cursor: not-allowed; }
-
-  /* ---- Queue List ---- */
-  .queue-list { padding: 0; list-style: none; max-height: 520px; overflow-y: auto; }
-  .queue-item {
-    display: flex; align-items: center; gap: 1rem;
-    padding: .875rem 1.25rem;
-    border-bottom: 1px solid var(--border);
-    transition: background .15s;
-  }
-  .queue-item:last-child { border-bottom: none; }
-  .queue-item:hover { background: #f8fafc; }
-  .queue-item.new-item { animation: slideIn .4s ease; }
-  @keyframes slideIn {
-    from { background: #dbeafe; transform: translateX(-8px); }
-    to   { background: transparent; transform: translateX(0); }
-  }
-  .q-number {
-    font-size: 1.25rem; font-weight: 800; color: var(--primary);
-    min-width: 60px;
-  }
-  .q-info { flex: 1; min-width: 0; }
-  .q-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .q-purpose { font-size: .78rem; color: var(--muted); margin-top: .15rem; }
-  .q-time { font-size: .75rem; color: var(--muted); white-space: nowrap; }
-
-  .empty-state {
-    text-align: center; padding: 3rem 1rem;
-    color: var(--muted); font-size: .9rem;
-  }
-  .empty-state .emoji { font-size: 3rem; display: block; margin-bottom: .75rem; }
-
-  /* ---- Stats Bar ---- */
-  .stats-bar {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 1rem; margin-bottom: 1.25rem;
-  }
-  .stat-card {
-    background: var(--card);
-    border-radius: 14px;
-    padding: 1rem 1.25rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
-  }
-  .stat-value { font-size: 2rem; font-weight: 800; }
-  .stat-label { font-size: .78rem; color: var(--muted); margin-top: .15rem; }
-  .stat-card.blue  .stat-value { color: var(--primary); }
-  .stat-card.green .stat-value { color: var(--green); }
-  .stat-card.gray  .stat-value { color: var(--muted); }
-
-  /* ---- Toast ---- */
-  .toast {
-    position: fixed; bottom: 1.5rem; right: 1.5rem;
-    background: #1e293b; color: white;
-    padding: .875rem 1.25rem; border-radius: 12px;
-    font-size: .875rem; font-weight: 600;
-    transform: translateY(100px); opacity: 0;
-    transition: all .3s ease;
-    z-index: 100; max-width: 320px;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-left: 4px solid #22c55e; }
-  .toast.error   { border-left: 4px solid #ef4444; }
-
-  /* ---- Connection Status ---- */
-  .conn-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    display: inline-block; margin-right: .35rem;
-  }
-  .conn-dot.connected    { background: #22c55e; animation: livePulse 1.5s infinite; }
-  .conn-dot.disconnected { background: #ef4444; }
-  @keyframes livePulse {
-    0%,100% { opacity:1; } 50% { opacity:.4; }
-  }
-</style>
-</head>
-<body>
-
-<!-- Top Bar -->
-<div class="topbar">
-  <div class="topbar-brand">🖥️ Dashboard Operator</div>
-  <div class="topbar-right">
-    <span>
-      <span class="conn-dot connected" id="conn-dot"></span>
-      <span id="conn-label" style="font-size:.78rem;color:#94a3b8">Terhubung</span>
-    </span>
-    <span class="loket-badge">{{ Auth::user()->loket_name }}</span>
-    <span style="color:#94a3b8">{{ Auth::user()->name }}</span>
-    <form method="POST" action="{{ route('logout') }}" style="display:inline">
-      @csrf
-      <button class="logout-btn" type="submit">Keluar</button>
-    </form>
-  </div>
-</div>
-
-<!-- Main Content -->
-<div class="main">
-
-  <!-- Kolom Kanan: Antrian Aktif -->
-  <div style="order:2; display:flex; flex-direction:column; gap:1.25rem;">
-
-    <!-- Statistik -->
-    <div class="stats-bar">
-      <div class="stat-card blue">
-        <div class="stat-value" id="stat-waiting">{{ $waitingQueues->count() }}</div>
-        <div class="stat-label">⏳ Menunggu</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-value" id="stat-served">
-          {{ \App\Models\Antrian::where('status','completed')->whereDate('created_at',today())->count() }}
-        </div>
-        <div class="stat-label">✅ Selesai Hari Ini</div>
-      </div>
-      <div class="stat-card gray">
-        <div class="stat-value" id="stat-skipped">
-          {{ \App\Models\Antrian::where('status','skipped')->whereDate('created_at',today())->count() }}
-        </div>
-        <div class="stat-label">⏭️ Dilewati</div>
-      </div>
-    </div>
-
-    <!-- Panel Antrian Aktif -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">🎯 Sedang Dilayani</span>
-        <span id="active-loket" style="font-size:.8rem;color:var(--muted)">{{ Auth::user()->loket_name }}</span>
-      </div>
-
-      <div class="active-box" id="active-box">
-        @if($activeQueue)
-          <div class="active-label">Nomor Antrian</div>
-          <div class="active-number" id="active-number">{{ $activeQueue->queue_number }}</div>
-          <div class="active-name" id="active-name">{{ $activeQueue->visitor_name }}</div>
-          <div class="active-purpose" id="active-purpose">{{ $activeQueue->purpose ?? '–' }}</div>
-        @else
-          <div style="padding:1.5rem 0;color:var(--muted)">
-            <div style="font-size:3rem">🟢</div>
-            <div style="margin-top:.5rem;font-weight:600">Siap Melayani</div>
-            <div style="font-size:.85rem;margin-top:.25rem">Klik "Panggil" untuk memanggil antrian berikutnya</div>
-          </div>
-        @endif
-      </div>
-
-      <!-- Tombol Aksi -->
-      <div class="actions">
-        <button class="btn btn-call" id="btn-call" onclick="callQueue()">
-          📢 Panggil Berikutnya
-        </button>
-        <button class="btn btn-recall" id="btn-recall"
-          @if(!$activeQueue) disabled @endif
-          onclick="recallQueue()">
-          🔁 Panggil Ulang
-        </button>
-        <button class="btn btn-skip" id="btn-skip"
-          @if(!$activeQueue) disabled @endif
-          onclick="skipQueue()">
-          ⏭️ Lewati
-        </button>
-        <button class="btn btn-done" id="btn-done"
-          @if(!$activeQueue) disabled @endif
-          onclick="completeQueue()">
-          ✅ Selesai
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Kolom Kiri: Daftar Antrian Menunggu -->
-  <div style="order:1;">
-    <div class="card" style="height:100%">
-      <div class="card-header">
-        <span class="card-title">📋 Daftar Antrian Menunggu</span>
-        <span class="count-badge" id="waiting-badge">{{ $waitingQueues->count() }}</span>
-      </div>
-
-      <ul class="queue-list" id="queue-list">
-        @foreach($waitingQueues as $q)
-          <li class="queue-item" id="queue-item-{{ $q->id }}" data-id="{{ $q->id }}">
-            <span class="q-number">{{ $q->queue_number }}</span>
-            <div class="q-info">
-              <div class="q-name">{{ $q->visitor_name }}</div>
-              <div class="q-purpose">{{ $q->purpose ?: 'Tidak ada keterangan' }}</div>
-            </div>
-            <span class="q-time">{{ $q->created_at->format('H:i') }}</span>
-          </li>
-        @endforeach
-        @if($waitingQueues->isEmpty())
-          <li class="empty-state" id="empty-state">
-            <span class="emoji">🎉</span>
-            Belum ada antrian yang menunggu
-          </li>
-        @endif
-      </ul>
-    </div>
-  </div>
-
-</div>
-
-<!-- Toast Notification -->
-<div class="toast" id="toast"></div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const CSRF_TOKEN     = document.querySelector('meta[name="csrf-token"]').content;
-    let activeQueueId   = @json($activeQueue?->id);
-
-    // ---- Laravel Echo Listeners ----
-    window.Echo.connector.pusher.connection.bind('state_change', (states) => {
-        updateConn(states.current === 'connected');
-    });
-
-    window.Echo.channel('operator-dashboard')
-        .listen('QueueCreated', (data) => {
-            addQueueItem(data);
-            updateStats(data.waiting_count);
-            showToast('🎟️ Antrian baru: ' + data.queue_number + ' – ' + data.visitor_name, 'success');
-        })
-        .listen('QueueStatusChanged', (data) => {
-            removeQueueItem(data.id);
-            updateStats(data.waiting_count);
-        })
-        .listen('QueueCalled', (data) => {
-            removeQueueItem(data.id);
-        });
-
-    function updateConn(ok) {
-        const dot   = document.getElementById('conn-dot');
-        const label = document.getElementById('conn-label');
-        if (dot) dot.className = 'conn-dot ' + (ok ? 'connected' : 'disconnected');
-        if (label) label.textContent = ok ? 'Terhubung' : 'Terputus';
-    }
-
-    // ---- DOM Helpers ----
-    function addQueueItem(data) {
-        const list  = document.getElementById('queue-list');
-        const empty = document.getElementById('empty-state');
-        if (empty) empty.remove();
-
-        if (document.getElementById('queue-item-' + data.id)) return;
-
-        const li = document.createElement('li');
-        li.className = 'queue-item new-item';
-        li.id        = 'queue-item-' + data.id;
-        li.dataset.id = data.id;
-        li.innerHTML = `
-            <span class="q-number">${data.queue_number}</span>
-            <div class="q-info">
-                <div class="q-name">${data.visitor_name}</div>
-                <div class="q-purpose">${data.purpose || 'Tidak ada keterangan'}</div>
-            </div>
-            <span class="q-time">${data.created_at}</span>
-        `;
-        list.appendChild(li);
-    }
-
-    function removeQueueItem(id) {
-        const el = document.getElementById('queue-item-' + id);
-        if (el) {
-            el.style.opacity = '0';
-            el.style.transform = 'translateX(20px)';
-            el.style.transition = 'all .3s';
-            setTimeout(() => {
-                el.remove();
-                if (document.querySelectorAll('.queue-item').length === 0) {
-                    const list = document.getElementById('queue-list');
-                    list.innerHTML = `<li class="empty-state" id="empty-state"><span class="emoji">🎉</span>Belum ada antrian yang menunggu</li>`;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Operator – {{ Auth::user()->loket_name }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @vite(['resources/css/app.css', 'resources/js/echo.js'])
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#b10303',
+                        'primary-dark': '#8b0202',
+                        bg: '#fef2f2',
+                        card: '#ffffff',
+                        text: '#1e293b',
+                        muted: '#64748b',
+                        border: '#e2e8f0',
+                        success: '#059669',
+                        warning: '#d97706',
+                        danger: '#dc2626',
+                    }
                 }
-            }, 300);
-        }
-    }
-
-    function updateStats(waitingCount) {
-        document.getElementById('stat-waiting').textContent  = waitingCount;
-        document.getElementById('waiting-badge').textContent = waitingCount;
-    }
-
-    function updateActiveBox(queue) {
-        const box = document.getElementById('active-box');
-        if (queue) {
-            box.innerHTML = `
-                <div class="active-label">Nomor Antrian</div>
-                <div class="active-number" id="active-number">${queue.queue_number}</div>
-                <div class="active-name" id="active-name">${queue.visitor_name}</div>
-                <div class="active-purpose" id="active-purpose">${queue.purpose || '–'}</div>
-            `;
-            document.getElementById('btn-recall').disabled = false;
-            document.getElementById('btn-skip').disabled   = false;
-            document.getElementById('btn-done').disabled   = false;
-        } else {
-            box.innerHTML = `
-                <div style="padding:1.5rem 0;color:var(--muted)">
-                    <div style="font-size:3rem">🟢</div>
-                    <div style="margin-top:.5rem;font-weight:600">Siap Melayani</div>
-                    <div style="font-size:.85rem;margin-top:.25rem">Klik "Panggil" untuk memanggil antrian berikutnya</div>
-                </div>`;
-            document.getElementById('btn-recall').disabled = true;
-            document.getElementById('btn-skip').disabled   = true;
-            document.getElementById('btn-done').disabled   = true;
-        }
-    }
-
-    // ---- API Actions ----
-    window.callQueue = async function() {
-        const btn = document.getElementById('btn-call');
-        btn.disabled = true;
-        btn.textContent = '⏳ Memproses...';
-
-        try {
-            const res  = await post('{{ route("operator.queue.call") }}', {});
-            const data = await res.json();
-
-            if (res.ok) {
-                activeQueueId = data.queue.id;
-                updateActiveBox(data.queue);
-                removeQueueItem(data.queue.id);
-                showToast('📢 Memanggil ' + data.queue_number, 'success');
-            } else {
-                showToast(data.message, 'error');
             }
-        } catch(e) {
-            showToast('Gagal terhubung ke server.', 'error');
+        }
+    </script>
+    <style>
+        @keyframes slideIn {
+            from {
+                background: #fee2e2;
+                transform: translateX(-8px);
+            }
+
+            to {
+                background: transparent;
+                transform: translateX(0);
+            }
         }
 
-        btn.disabled    = false;
-        btn.innerHTML   = '📢 Panggil Berikutnya';
-    }
+        @keyframes livePulse {
 
-    window.recallQueue = async function() {
-        if (!activeQueueId) return;
-        try {
-            const res  = await post(`/operator/queue/${activeQueueId}/recall`, {});
-            const data = await res.json();
-            showToast(res.ok ? '🔁 ' + data.message : data.message, res.ok ? 'success' : 'error');
-        } catch(e) { showToast('Gagal terhubung ke server.', 'error'); }
-    }
+            0%,
+            100% {
+                opacity: 1;
+            }
 
-    window.skipQueue = async function() {
-        if (!activeQueueId) return;
-        if (!confirm('Lewati antrian ini? Pengunjung tidak akan dilayani.')) return;
+            50% {
+                opacity: 0.4;
+            }
+        }
 
-        try {
-            const res  = await post(`/operator/queue/${activeQueueId}/skip`, {});
-            const data = await res.json();
+        @keyframes toastIn {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
 
-            if (res.ok) {
-                activeQueueId = null;
-                updateActiveBox(null);
-                updateStats(data.waiting_count);
-                // Increment skipped counter
-                const el = document.getElementById('stat-skipped');
-                el.textContent = parseInt(el.textContent) + 1;
-                showToast('⏭️ Antrian dilewati.', 'success');
-            } else { showToast(data.message, 'error'); }
-        } catch(e) { showToast('Gagal terhubung ke server.', 'error'); }
-    }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
-    window.completeQueue = async function() {
-        if (!activeQueueId) return;
+        .animate-slide-in {
+            animation: slideIn 0.4s ease;
+        }
 
-        try {
-            const res  = await post(`/operator/queue/${activeQueueId}/complete`, {});
-            const data = await res.json();
+        .animate-live-pulse {
+            animation: livePulse 1.5s infinite;
+        }
 
-            if (res.ok) {
-                activeQueueId = null;
-                updateActiveBox(null);
-                updateStats(data.waiting_count);
-                // Increment selesai counter
-                const el = document.getElementById('stat-served');
-                el.textContent = parseInt(el.textContent) + 1;
-                showToast('✅ Antrian selesai dilayani.', 'success');
-            } else { showToast(data.message, 'error'); }
-        } catch(e) { showToast('Gagal terhubung ke server.', 'error'); }
-    }
+        .animate-toast-in {
+            animation: toastIn 0.3s ease;
+        }
 
-    function post(url, data) {
-        return fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
-            body: JSON.stringify(data),
+        .queue-item-transition {
+            transition: opacity 0.3s, transform 0.3s;
+        }
+    </style>
+</head>
+
+<body class="bg-[#fef2f2] text-[#1e293b] min-h-screen font-sans">
+
+    <!-- Top Bar -->
+    <div class="bg-[#b10303] text-white py-3 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-2 font-extrabold text-base">
+            <i class="fa-solid fa-desktop"></i> Dashboard Operator
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+            <span class="flex items-center gap-1">
+                <span id="conn-dot" class="w-2 h-2 bg-green-500 rounded-full animate-live-pulse inline-block"></span>
+                <span id="conn-label" class="text-slate-400 text-xs">Terhubung</span>
+            </span>
+            <span class="bg-[#b10303] px-3 py-1 rounded-full text-xs font-bold">
+                <i class="fa-solid fa-building mr-1"></i> {{ Auth::user()->loket_name }}
+            </span>
+            <span class="text-slate-400 text-xs">{{ Auth::user()->name }}</span>
+            <form method="POST" action="{{ route('logout') }}" class="inline">
+                @csrf
+                <button type="submit"
+                    class="border border-white/30 text-white px-3 py-1 rounded-lg text-xs hover:bg-white/10 transition">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 p-5">
+
+        <!-- Left Column: Waiting Queue List -->
+        <div class="order-2 lg:order-1">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="px-5 py-4 border-b border-[#e2e8f0] flex items-center justify-between">
+                    <span class="font-bold text-[#1e293b]">
+                        <i class="fa-regular fa-list-alt mr-2"></i> Daftar Antrian Menunggu
+                    </span>
+                    <span class="bg-[#b10303] text-white text-xs font-bold px-3 py-1 rounded-full"
+                        id="waiting-badge">{{ $waitingQueues->count() }}</span>
+                </div>
+                <ul class="max-h-[520px] overflow-y-auto" id="queue-list">
+                    @foreach ($waitingQueues as $q)
+                        <li class="queue-item flex items-center gap-3 px-5 py-3 border-b border-[#e2e8f0] hover:bg-slate-50 transition"
+                            id="queue-item-{{ $q->id }}" data-id="{{ $q->id }}">
+                            <span
+                                class="text-xl font-extrabold text-[#b10303] min-w-[60px]">{{ $q->queue_number }}</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-[#1e293b] truncate">{{ $q->visitor_name }}</div>
+                                <div class="text-xs text-[#64748b] truncate">
+                                    {{ $q->purpose ?: 'Tidak ada keterangan' }}</div>
+                            </div>
+                            <span
+                                class="text-xs text-[#64748b] whitespace-nowrap">{{ $q->created_at->format('H:i') }}</span>
+                        </li>
+                    @endforeach
+                    @if ($waitingQueues->isEmpty())
+                        <li class="text-center py-10 text-[#64748b]" id="empty-state">
+                            <i class="fa-regular fa-face-smile text-4xl block mb-2"></i>
+                            Belum ada antrian yang menunggu
+                        </li>
+                    @endif
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Column: Active Queue & Stats -->
+        <div class="order-1 lg:order-2 flex flex-col gap-5">
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="text-3xl font-extrabold text-[#b10303]" id="stat-waiting">{{ $waitingQueues->count() }}
+                    </div>
+                    <div class="text-xs text-[#64748b] mt-1"><i class="fa-regular fa-clock mr-1"></i> Menunggu</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="text-3xl font-extrabold text-[#059669]" id="stat-served">
+                        {{ \App\Models\Antrian::where('status', 'completed')->whereDate('created_at', today())->count() }}
+                    </div>
+                    <div class="text-xs text-[#64748b] mt-1"><i class="fa-regular fa-circle-check mr-1"></i> Selesai
+                        Hari Ini</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="text-3xl font-extrabold text-[#64748b]" id="stat-skipped">
+                        {{ \App\Models\Antrian::where('status', 'skipped')->whereDate('created_at', today())->count() }}
+                    </div>
+                    <div class="text-xs text-[#64748b] mt-1"><i class="fa-solid fa-forward-step mr-1"></i> Dilewati
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Queue Panel -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="px-5 py-4 border-b border-[#e2e8f0] flex items-center justify-between">
+                    <span class="font-bold text-[#1e293b]">
+                        <i class="fa-regular fa-bell mr-2"></i> Sedang Dilayani
+                    </span>
+                    <span class="text-xs text-[#64748b]"><i class="fa-solid fa-building mr-1"></i>
+                        {{ Auth::user()->loket_name }}</span>
+                </div>
+
+                <div class="p-6 text-center" id="active-box">
+                    @if ($activeQueue)
+                        <div class="text-xs text-[#64748b] uppercase tracking-wide">Nomor Antrian</div>
+                        <div class="text-7xl font-black text-[#b10303] leading-none my-2" id="active-number">
+                            {{ $activeQueue->queue_number }}</div>
+                        <div class="font-semibold text-[#1e293b]" id="active-name">{{ $activeQueue->visitor_name }}
+                        </div>
+                        <div class="text-sm text-[#64748b] mt-1" id="active-purpose">{{ $activeQueue->purpose ?? '–' }}
+                        </div>
+                    @else
+                        <div class="py-4 text-[#64748b]">
+                            <i class="fa-regular fa-circle-check text-5xl block mb-3"></i>
+                            <div class="font-semibold">Siap Melayani</div>
+                            <div class="text-xs mt-1">Klik "Panggil" untuk memanggil antrian berikutnya</div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-3 gap-3 p-5 pt-0">
+                    <button
+                        class="col-span-3 bg-[#b10303] hover:bg-[#8b0202] text-white font-bold py-3 rounded-lg transition active:scale-95 flex items-center justify-center gap-2 text-base"
+                        id="btn-call" onclick="callQueue()">
+                        <i class="fa-solid fa-bullhorn"></i> Panggil Berikutnya
+                    </button>
+                    <button
+                        class="bg-amber-50 text-[#d97706] border-2 border-amber-200 font-bold py-2 rounded-lg transition active:scale-95 flex items-center justify-center gap-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                        id="btn-recall" @if (!$activeQueue) disabled @endif onclick="recallQueue()">
+                        <i class="fa-solid fa-rotate-left"></i> Panggil Ulang
+                    </button>
+                    <button
+                        class="bg-red-50 text-[#dc2626] border-2 border-red-200 font-bold py-2 rounded-lg transition active:scale-95 flex items-center justify-center gap-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                        id="btn-skip" @if (!$activeQueue) disabled @endif onclick="skipQueue()">
+                        <i class="fa-solid fa-forward-step"></i> Lewati
+                    </button>
+                    <button
+                        class="bg-green-50 text-[#059669] border-2 border-green-200 font-bold py-2 rounded-lg transition active:scale-95 flex items-center justify-center gap-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                        id="btn-done" @if (!$activeQueue) disabled @endif onclick="completeQueue()">
+                        <i class="fa-regular fa-circle-check"></i> Selesai
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-6 right-6 bg-[#1e293b] text-white px-4 py-3 rounded-xl text-sm font-semibold max-w-sm shadow-lg z-50 hidden">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
+            let activeQueueId = @json($activeQueue?->id);
+
+            // Laravel Echo Listeners
+            if (window.Echo) {
+                window.Echo.connector.pusher.connection.bind('state_change', (states) => {
+                    updateConn(states.current === 'connected');
+                });
+
+                window.Echo.channel('operator-dashboard')
+                    .listen('QueueCreated', (data) => {
+                        addQueueItem(data);
+                        updateStats(data.waiting_count);
+                        showToast('🎟️ Antrian baru: ' + data.queue_number + ' – ' + data.visitor_name,
+                            'success');
+                    })
+                    .listen('QueueStatusChanged', (data) => {
+                        removeQueueItem(data.id);
+                        updateStats(data.waiting_count);
+                    })
+                    .listen('QueueCalled', (data) => {
+                        removeQueueItem(data.id);
+                    });
+            }
+
+            function updateConn(ok) {
+                const dot = document.getElementById('conn-dot');
+                const label = document.getElementById('conn-label');
+                if (dot) {
+                    dot.className = 'w-2 h-2 rounded-full inline-block ' + (ok ? 'bg-green-500 animate-live-pulse' :
+                        'bg-red-500');
+                }
+                if (label) label.textContent = ok ? 'Terhubung' : 'Terputus';
+            }
+
+            function addQueueItem(data) {
+                const list = document.getElementById('queue-list');
+                const empty = document.getElementById('empty-state');
+                if (empty) empty.remove();
+
+                if (document.getElementById('queue-item-' + data.id)) return;
+
+                const li = document.createElement('li');
+                li.className =
+                    'flex items-center gap-3 px-5 py-3 border-b border-[#e2e8f0] hover:bg-slate-50 transition animate-slide-in';
+                li.id = 'queue-item-' + data.id;
+                li.dataset.id = data.id;
+                li.innerHTML = `
+            <span class="text-xl font-extrabold text-[#b10303] min-w-[60px]">${data.queue_number}</span>
+            <div class="flex-1 min-w-0">
+                <div class="font-semibold text-[#1e293b] truncate">${data.visitor_name}</div>
+                <div class="text-xs text-[#64748b] truncate">${data.purpose || 'Tidak ada keterangan'}</div>
+            </div>
+            <span class="text-xs text-[#64748b] whitespace-nowrap">${data.created_at}</span>
+        `;
+                list.appendChild(li);
+            }
+
+            function removeQueueItem(id) {
+                const el = document.getElementById('queue-item-' + id);
+                if (el) {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateX(20px)';
+                    el.style.transition = 'opacity 0.3s, transform 0.3s';
+                    setTimeout(() => {
+                        el.remove();
+                        if (document.querySelectorAll('.queue-item').length === 0) {
+                            const list = document.getElementById('queue-list');
+                            list.innerHTML = `<li class="text-center py-10 text-[#64748b]" id="empty-state">
+                        <i class="fa-regular fa-face-smile text-4xl block mb-2"></i>
+                        Belum ada antrian yang menunggu
+                    </li>`;
+                        }
+                    }, 300);
+                }
+            }
+
+            function updateStats(waitingCount) {
+                document.getElementById('stat-waiting').textContent = waitingCount;
+                document.getElementById('waiting-badge').textContent = waitingCount;
+            }
+
+            function updateActiveBox(queue) {
+                const box = document.getElementById('active-box');
+                if (queue) {
+                    box.innerHTML = `
+                <div class="text-xs text-[#64748b] uppercase tracking-wide">Nomor Antrian</div>
+                <div class="text-7xl font-black text-[#b10303] leading-none my-2" id="active-number">${queue.queue_number}</div>
+                <div class="font-semibold text-[#1e293b]" id="active-name">${queue.visitor_name}</div>
+                <div class="text-sm text-[#64748b] mt-1" id="active-purpose">${queue.purpose || '–'}</div>
+            `;
+                    document.getElementById('btn-recall').disabled = false;
+                    document.getElementById('btn-skip').disabled = false;
+                    document.getElementById('btn-done').disabled = false;
+                } else {
+                    box.innerHTML = `
+                <div class="py-4 text-[#64748b]">
+                    <i class="fa-regular fa-circle-check text-5xl block mb-3"></i>
+                    <div class="font-semibold">Siap Melayani</div>
+                    <div class="text-xs mt-1">Klik "Panggil" untuk memanggil antrian berikutnya</div>
+                </div>`;
+                    document.getElementById('btn-recall').disabled = true;
+                    document.getElementById('btn-skip').disabled = true;
+                    document.getElementById('btn-done').disabled = true;
+                }
+            }
+
+            window.callQueue = async function() {
+                const btn = document.getElementById('btn-call');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+
+                try {
+                    const res = await post('{{ route('operator.queue.call') }}', {});
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        activeQueueId = data.queue.id;
+                        updateActiveBox(data.queue);
+                        removeQueueItem(data.queue.id);
+                        showToast('📢 Memanggil ' + data.queue_number, 'success');
+                    } else {
+                        showToast(data.message || 'Gagal memanggil antrian', 'error');
+                    }
+                } catch (e) {
+                    showToast('Gagal terhubung ke server.', 'error');
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bullhorn"></i> Panggil Berikutnya';
+            }
+
+            window.recallQueue = async function() {
+                if (!activeQueueId) return;
+                try {
+                    const res = await post(`/operator/queue/${activeQueueId}/recall`, {});
+                    const data = await res.json();
+                    showToast(res.ok ? '🔁 ' + data.message : (data.message || 'Gagal'), res.ok ?
+                        'success' : 'error');
+                } catch (e) {
+                    showToast('Gagal terhubung ke server.', 'error');
+                }
+            }
+
+            window.skipQueue = async function() {
+                if (!activeQueueId) return;
+                if (!confirm('Lewati antrian ini? Pengunjung tidak akan dilayani.')) return;
+
+                try {
+                    const res = await post(`/operator/queue/${activeQueueId}/skip`, {});
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        activeQueueId = null;
+                        updateActiveBox(null);
+                        updateStats(data.waiting_count);
+                        const el = document.getElementById('stat-skipped');
+                        el.textContent = parseInt(el.textContent) + 1;
+                        showToast('⏭️ Antrian dilewati.', 'success');
+                    } else {
+                        showToast(data.message || 'Gagal melewati antrian', 'error');
+                    }
+                } catch (e) {
+                    showToast('Gagal terhubung ke server.', 'error');
+                }
+            }
+
+            window.completeQueue = async function() {
+                if (!activeQueueId) return;
+
+                try {
+                    const res = await post(`/operator/queue/${activeQueueId}/complete`, {});
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        activeQueueId = null;
+                        updateActiveBox(null);
+                        updateStats(data.waiting_count);
+                        const el = document.getElementById('stat-served');
+                        el.textContent = parseInt(el.textContent) + 1;
+                        showToast('✅ Antrian selesai dilayani.', 'success');
+                    } else {
+                        showToast(data.message || 'Gagal menyelesaikan antrian', 'error');
+                    }
+                } catch (e) {
+                    showToast('Gagal terhubung ke server.', 'error');
+                }
+            }
+
+            function post(url, data) {
+                return fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': CSRF_TOKEN
+                    },
+                    body: JSON.stringify(data),
+                });
+            }
+
+            let toastTimer;
+
+            function showToast(msg, type = 'success') {
+                const el = document.getElementById('toast');
+                el.textContent = msg;
+                el.className =
+                    'fixed bottom-6 right-6 px-4 py-3 rounded-xl text-sm font-semibold max-w-sm shadow-lg z-50 animate-toast-in ' +
+                    (type === 'success' ? 'bg-[#059669]' : 'bg-[#dc2626]');
+                el.classList.remove('hidden');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    el.classList.add('hidden');
+                }, 3500);
+            }
         });
-    }
-
-    // ---- Toast ----
-    let toastTimer;
-    function showToast(msg, type = 'success') {
-        const el = document.getElementById('toast');
-        el.textContent  = msg;
-        el.className    = 'toast show ' + type;
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
-    }
-});
-</script>
+    </script>
 </body>
+
 </html>

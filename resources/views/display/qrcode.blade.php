@@ -1,82 +1,103 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QR Code Antrian</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: #f0f4ff;
-    display: flex; align-items: center; justify-content: center;
-    min-height: 100vh; padding: 2rem;
-  }
-  .container { text-align: center; }
-  .card {
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 12px 40px rgba(26,86,219,.15);
-    padding: 3rem 2.5rem;
-    display: inline-block;
-    min-width: 340px;
-  }
-  h1 { font-size: 1.5rem; color: #1e293b; font-weight: 800; margin-bottom: .25rem; }
-  .sub { color: #64748b; font-size: .9rem; margin-bottom: 2rem; }
-  .qr-wrapper {
-    border: 4px solid #1a56db;
-    border-radius: 16px;
-    padding: 1rem;
-    display: inline-block;
-    margin: 1rem 0;
-  }
-  .url-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: .75rem 1rem;
-    font-size: .8rem;
-    word-break: break-all;
-    color: #1a56db;
-    margin-top: 1rem;
-    font-family: monospace;
-  }
-  .btn-print {
-    display: inline-block;
-    margin-top: 1.5rem;
-    padding: .75rem 2rem;
-    background: #1a56db;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: .95rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  @media print {
-    body { background: white; }
-    .btn-print { display: none; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Antrian - Sini Antri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#b10303',
+                        'primary-dark': '#8b0202',
+                        bg: '#fef2f2',
+                        card: '#ffffff',
+                        text: '#1e293b',
+                        muted: '#64748b',
+                        border: '#e2e8f0',
+                        success: '#059669',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-<div class="container">
-  <div class="card">
-    <h1>🎟️ Ambil Nomor Antrian</h1>
-    <p class="sub">Pindai QR Code di bawah dengan kamera HP Anda</p>
 
-    <div class="qr-wrapper">
-      {!! QrCode::size(220)->style('round')->eye('circle')->color(26,86,219)->generate($url) !!}
+<body class="bg-[#fef2f2] min-h-screen flex items-center justify-center p-6 font-sans">
+    <div class="text-center">
+        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200 p-8 md:p-12 inline-block min-w-[340px] max-w-md">
+
+            <!-- Header -->
+            <div class="mb-6">
+                <div
+                    class="w-16 h-16 bg-[#b10303] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#b10303]/20">
+                    <i class="fa-solid fa-qrcode text-3xl text-white"></i>
+                </div>
+                <h1 class="text-xl font-extrabold text-[#1e293b]">Ambil Nomor Antrian</h1>
+                <p class="text-sm text-[#64748b] mt-1">
+                    <i class="fa-solid fa-camera mr-1"></i> Pindai QR Code di bawah dengan kamera HP Anda
+                </p>
+            </div>
+
+            <!-- QR Code Wrapper -->
+            <div class="inline-block p-4 rounded-xl bg-white shadow-md border-4 border-[#b10303]">
+                {!! QrCode::size(220)->style('round')->eye('circle')->color(177, 3, 3)->generate($url) !!}
+            </div>
+
+            <!-- Location Info -->
+            <div class="mt-6 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-location-dot text-[#b10303] text-sm"></i>
+                <span class="text-xs text-[#64748b]">Lokasi:</span>
+                <strong class="text-sm font-bold text-[#1e293b] bg-[#fef2f2] px-3 py-1 rounded-full">
+                    {{ strtoupper($locationCode) }}
+                </strong>
+            </div>
+
+            <!-- URL Box -->
+            <div class="mt-4 bg-[#fef2f2] border border-[#e2e8f0] rounded-xl p-3">
+                <div class="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-1">
+                    <i class="fa-solid fa-link mr-1"></i> URL Antrian
+                </div>
+                <code class="text-xs text-[#b10303] font-mono break-all">{{ $url }}</code>
+            </div>
+
+            <!-- Print Button -->
+            <button onclick="window.print()"
+                class="no-print mt-6 bg-[#b10303] hover:bg-[#8b0202] text-white font-bold py-3 px-6 rounded-xl transition active:scale-95 shadow-lg shadow-[#b10303]/20 flex items-center justify-center gap-2 w-full">
+                <i class="fa-solid fa-print"></i> Cetak QR Code
+            </button>
+
+            <!-- Footer Note -->
+            <p
+                class="text-[10px] text-[#64748b] font-bold uppercase tracking-widest mt-6 pt-4 border-t border-[#e2e8f0]">
+                <i class="fa-solid fa-ticket mr-1"></i> Sini <span class="text-[#b10303]">Antri</span> - Digital Queue
+                System v1.0
+            </p>
+            <p class="text-[10px] text-slate-500 font-light tracking-widest pt-2">
+                Made with ❤️ Adi Arta Wibawa</p>
+        </div>
     </div>
-
-    <p style="font-size:.8rem;color:#64748b;margin-top:1rem">
-      Lokasi: <strong>{{ strtoupper($locationCode) }}</strong>
-    </p>
-    <div class="url-box">{{ $url }}</div>
-
-    <br>
-    <button class="btn-print" onclick="window.print()">🖨️ Cetak QR Code</button>
-  </div>
-</div>
 </body>
+
 </html>
