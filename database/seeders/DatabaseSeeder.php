@@ -67,6 +67,9 @@ class DatabaseSeeder extends Seeder
             User::updateOrCreate(['email' => $operator['email']], $operator);
         }
 
+        // Dummy data antrian
+        $this->call(AntrianSeeder::class);
+
         $this->command->info('✅ Seed selesai!');
         $this->command->info('   Login: loket1@antrian.test / password');
         $this->command->info('   Login: loket2@antrian.test / password');

@@ -15,29 +15,31 @@ class QueueAudioService
             $this->getAudioUrl('umum/nomor-antrian.mp3'),
         ];
 
-        // Clean and parse (e.g., "A - 001" -> prefix: "A", number: 1)
+        // Bersihkan spasi/strip, lalu pisahkan prefix huruf dan angka
+        // Contoh: "A - 001" -> prefix: "A", number: "001"
         $cleanNumber = trim(str_replace([' ', '-', '_'], '', $queueNumber));
         preg_match('/^([a-zA-Z]*)(\d+)$/', $cleanNumber, $matches);
 
         if ($matches) {
-            $prefix = $matches[1];
-            $number = (int) $matches[2];
+            $prefix = $matches[1];       // e.g. "A"
+            $numberRaw = $matches[2];       // e.g. "001" (pertahankan leading zero)
 
-            // 1. Prefix letters
-            if ($prefix) {
-                foreach (str_split(strtolower($prefix)) as $char) {
-                    $playlist[] = $this->getAudioUrl("huruf/{$char}.mp3");
-                }
+            // 1. Prefix huruf (A, B, dst.)
+            foreach (str_split(strtolower($prefix)) as $char) {
+                $playlist[] = $this->getAudioUrl("huruf/{$char}.mp3");
             }
 
-            // 2. The number (plays the combined audio file, e.g., 20.mp3 for "020")
-            $playlist[] = $this->getAudioUrl("angka/{$number}.mp3");
+            // 2. Angka digit per digit menggunakan file angka/0.mp3 - angka/9.mp3
+            // Contoh: "001" -> angka/0.mp3, angka/0.mp3, angka/1.mp3
+            foreach (str_split($numberRaw) as $digit) {
+                $playlist[] = $this->getAudioUrl("angka/{$digit}.mp3");
+            }
         } else {
-            // Fallback: character by character if regex fails
+            // Fallback: karakter per karakter
             foreach (str_split(strtoupper($cleanNumber)) as $char) {
                 if (ctype_alpha($char)) {
                     $playlist[] = $this->getAudioUrl('huruf/'.strtolower($char).'.mp3');
-                } elseif (is_numeric($char)) {
+                } elseif (ctype_digit($char)) {
                     $playlist[] = $this->getAudioUrl("angka/{$char}.mp3");
                 }
             }
@@ -45,7 +47,7 @@ class QueueAudioService
 
         $playlist[] = $this->getAudioUrl('umum/silakan-menuju.mp3');
 
-        // 3. Loket audio (e.g., loket-1.mp3)
+        // 3. Loket (gunakan file loket/loket-{n}.mp3 yang sudah natural)
         preg_match('/\d+/', $loket, $loketMatches);
         $loketNum = $loketMatches[0] ?? 1;
         $playlist[] = $this->getAudioUrl("loket/loket-{$loketNum}.mp3");
@@ -55,7 +57,6 @@ class QueueAudioService
 
     protected function getAudioUrl(string $path): string
     {
-        // Use relative path to avoid APP_URL mismatch issues in local dev
         return asset('storage/audio/'.$path);
     }
 }
