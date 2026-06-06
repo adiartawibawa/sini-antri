@@ -223,7 +223,9 @@
     </style>
 @endpush
 
-@section('body_class', 'font-[\'Roboto\',sans-serif] bg-[#07090f] text-[#f0f2f8] h-dvh overflow-hidden flex flex-col relative')
+@section('body_class',
+    'font-[\'Roboto\',sans-serif] bg-[#07090f] text-[#f0f2f8] h-dvh overflow-hidden flex flex-col
+    relative')
 
 @section('content')
     @php
@@ -276,8 +278,7 @@
             </div>
             {{-- Clock --}}
             <div class="text-right">
-                <div id="clock"
-                    class="font-mono text-[28px] font-medium leading-none tracking-[0.04em] text-[#c0392b]">
+                <div id="clock" class="font-mono text-[28px] font-medium leading-none tracking-[0.04em] text-[#c0392b]">
                     00:00:00
                 </div>
                 <div class="mt-1 text-[10px] text-white/45 uppercase tracking-[0.12em]">
@@ -508,7 +509,7 @@
                 );
                 silent.play().catch(() => {});
                 player?.unMute?.();
-                player?.setVolume?.(100);
+                player?.setVolume?.(75);
                 player?.playVideo?.();
             });
 
@@ -536,7 +537,7 @@
             async function processAudioQueue() {
                 if (isProcessing || !audioQueue.length) return;
                 isProcessing = true;
-                player?.setVolume?.(15);
+                player?.setVolume?.(10);
                 await playPlaylist(audioQueue.shift());
                 player?.setVolume?.(100);
                 isProcessing = false;
